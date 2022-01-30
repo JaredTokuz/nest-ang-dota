@@ -1,0 +1,49 @@
+{
+  "name": "boilerplate-nest-ang",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "dev": "docker run -dp 9000:9000 -w /app -v \"$(pwd):/app\" node:14-alpine sh -c \"npm \" ",
+    "docker:start": "docker run -dp 9000:9000 nest #not really finished kinda",
+    "docker:build": "docker build -t nest .",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "tailwind": "npx tailwindcss -i ./tailwind.css -o ./src/styles.css",
+    "tailwind:dev": "npx tailwindcss -i ./tailwind.css -o ./src/styles.css --watch",
+    "tailwind:build:prod": "npx tailwindcss -i ./tailwind.css -o ./src/styles.css --minify",
+    "rest": "npm --prefix rest-api/ run server"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "~13.1.0",
+    "@angular/common": "~13.1.0",
+    "@angular/compiler": "~13.1.0",
+    "@angular/core": "~13.1.0",
+    "@angular/forms": "~13.1.0",
+    "@angular/platform-browser": "~13.1.0",
+    "@angular/platform-browser-dynamic": "~13.1.0",
+    "@angular/router": "~13.1.0",
+    "npm-run-all": "^4.1.5",
+    "rxjs": "~7.4.0",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.11.4"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "~13.1.2",
+    "@angular/cli": "~13.1.2",
+    "@angular/compiler-cli": "~13.1.0",
+    "@types/jasmine": "~3.10.0",
+    "@types/node": "^12.11.1",
+    "jasmine-core": "~3.10.0",
+    "karma": "~6.3.0",
+    "karma-chrome-launcher": "~3.1.0",
+    "karma-coverage": "~2.1.0",
+    "karma-jasmine": "~4.0.0",
+    "karma-jasmine-html-reporter": "~1.7.0",
+    "tailwindcss": "^3.0.16",
+    "tsc-watch": "^4.6.0",
+    "typescript": "~4.5.2"
+  }
+}
