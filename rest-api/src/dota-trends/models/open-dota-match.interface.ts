@@ -1,4 +1,4 @@
-export interface OpenDotaMatchResponse {
+export interface OpenDotaMatch {
   match_id: number;
   /** used to get region info */
   cluster: number;
@@ -8,14 +8,68 @@ export interface OpenDotaMatchResponse {
   radiant_gold_adv: number[];
   radiant_xp_adv: number[];
   /** get the bans in order not sure */
-  draft_timings: any[];
+  draft_timings: DraftTimings;
+  objectives: Objectives;
   /** the banning order seems to be off */
-  picks_bans: any[];
+  picks_bans: PicksBans;
   teamfights: Teamfights[];
   players: Player[];
   /** patch id */
   patch: number;
   [key: string]: unknown;
+}
+
+export type DraftTimings = DraftTiming[];
+
+export interface DraftTiming {
+  /** ordering already sorted */
+  order: number;
+  /** false == ban */
+  pick: boolean;
+  /** 0 or 2 idk what it means */
+  active_team: number;
+  hero_id: number;
+  /** idk useless */
+  player_slot: any;
+  /** idk useless */
+  extra_time: number;
+  /** idk useless */
+  total_time_taken: number;
+}
+
+export type Objectives = Objective[];
+
+export interface Objective {
+  /** seconds */
+  time: number;
+  /** category */
+  type: ObjectiveType;
+  /** player slot but doesnt match right for dire */
+  slot?: number;
+  /** usually id of the target */
+  key?: any;
+  /** matches the real player_slot */
+  player_slot?: number;
+  /** similar to slot but unit is missing so you need to convert the dire mistake use >= 5 */
+  team?: number;
+  /** string name of hero or creeps */
+  unit?: string;
+}
+
+type ObjectiveType =
+  | "CHAT_MESSAGE_FIRSTBLOOD"
+  | "CHAT_MESSAGE_COURIER_LOST"
+  | "building_kill"
+  | "CHAT_MESSAGE_ROSHAN_KILL"
+  | "CHAT_MESSAGE_AEGIS";
+
+export type PicksBans = PicksBan[];
+
+export interface PicksBan {
+  is_pick: boolean;
+  hero_id: number;
+  team: number;
+  order: number;
 }
 
 export interface Teamfights {

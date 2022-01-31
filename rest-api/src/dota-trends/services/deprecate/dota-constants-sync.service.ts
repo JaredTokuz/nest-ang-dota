@@ -1,9 +1,9 @@
 import { Injectable, Inject } from "@nestjs/common";
-import { DATABASE_CONNECTION } from "../constants";
+import { DATABASE_CONNECTION } from "../../constants";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { Filter, Db, FindOptions } from "mongodb";
-import { configDotaConstants, ConstantConfig } from "../models/dota-constants-sync.config";
+import { configDotaConstants, ConstantConfig } from "../../models/dota-constants-sync.config";
 
 @Injectable()
 export class DotaConstantsSyncService {

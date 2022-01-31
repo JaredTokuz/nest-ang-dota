@@ -1,9 +1,9 @@
-import { ContextObject, DataPass } from "./../../models/context-object.interface";
-import { OpenDotaLiveResponse, LiveGameDocument, LiveGame } from "../../models/live-matches.interfaces";
-import { OpenDotaService } from "./../../services/open-dota.service";
+import { ContextObject, DataPass } from "../models/context-object.interface";
+import { OpenDotaLiveResponse, LiveGameDocument, LiveGame } from "../models/live-matches.interfaces";
+import { OpenDotaService } from "../services/open-dota.service";
 import { Inject, Injectable } from "@nestjs/common";
 import { Collection } from "mongodb";
-import { LIVE_MATCHES } from "../../constants";
+import { LIVE_MATCHES } from "../constants";
 import { concatMap, debounceTime, from, map, Observable, shareReplay, Subject, tap, throttleTime } from "rxjs";
 
 export type LiveMatchPass = DataPass<LiveGame[]>;

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { LiveMatchRepo } from "./live-match.repo";
+import { LiveMatchRepo } from "../live-match.repo";
 
 describe("LiveMatchRepo", () => {
   let service: LiveMatchRepo;

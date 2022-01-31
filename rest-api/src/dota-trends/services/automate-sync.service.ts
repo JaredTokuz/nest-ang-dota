@@ -1,4 +1,4 @@
-import { LiveMatchRepo } from "./../repositories/live-match/live-match.repo";
+import { LiveMatchRepo } from "../repositories/live-match.repo";
 import { difference, unixTimestamp } from "../../misc";
 import { Rollup, TaskName } from "../logging-stuff/task-rollup.interface";
 import { Inject, Injectable } from "@nestjs/common";
@@ -10,7 +10,7 @@ import { TaskRollup } from "../logging-stuff/task-rollup";
 import { DATABASE_CONNECTION, LIVE_MATCHES, MATCHES } from "../constants";
 import { Db } from "mongodb";
 import { LiveGameDocument } from "../models/live-matches.interfaces";
-import { OpenDotaMatchResponse } from "../models/open-dota-match-response.interface";
+import { OpenDotaMatch } from "../models/open-dota-match.interface";
 import { ContextObject } from "../models/context-object.interface";
 
 interface DailyLiveSync extends Rollup {
@@ -109,7 +109,7 @@ export class AutomateSyncService {
       try {
         /** run main job */
         const liveMatchesCollection = this.db.collection<LiveGameDocument>(LIVE_MATCHES);
-        const matchesCollection = this.db.collection<OpenDotaMatchResponse>(MATCHES);
+        const matchesCollection = this.db.collection<OpenDotaMatch>(MATCHES);
 
         const d = new Date();
         const delta = 4;

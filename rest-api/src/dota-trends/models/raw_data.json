@@ -1,0 +1,202 @@
+{
+  "draft_timings": [
+    {
+      "order": 1,
+      "pick": false,
+      "active_team": 2,
+      "hero_id": 61,
+      "player_slot": null,
+      "extra_time": 0,
+      "total_time_taken": 0
+    },
+    {
+      "order": 2,
+      "pick": false,
+      "active_team": 0,
+      "hero_id": 12,
+      "player_slot": null,
+      "extra_time": 0,
+      "total_time_taken": 0
+    },
+    {
+      "order": 3,
+      "pick": false,
+      "active_team": 0,
+      "hero_id": 92,
+      "player_slot": null,
+      "extra_time": 0,
+      "total_time_taken": 0
+    },
+    {
+      "order": 4,
+      "pick": false,
+      "active_team": 0,
+      "hero_id": 34,
+      "player_slot": null,
+      "extra_time": 0,
+      "total_time_taken": 0
+    }
+  ],
+  "duration": 2120,
+  "engine": 1,
+  "first_blood_time": 40,
+  "game_mode": 22,
+  "human_players": 10,
+  "leagueid": 0,
+  "lobby_type": 7,
+  "match_seq_num": 5354008864,
+  "negative_votes": 0,
+  "objectives": [
+    { "time": 40, "type": "CHAT_MESSAGE_FIRSTBLOOD", "slot": 2, "key": 5, "player_slot": 2 },
+    { "time": 190, "type": "CHAT_MESSAGE_COURIER_LOST", "team": 9 },
+    {
+      "time": 537,
+      "type": "building_kill",
+      "unit": "npc_dota_creep_goodguys_ranged",
+      "key": "npc_dota_badguys_tower1_top"
+    },
+    {
+      "time": 706,
+      "type": "building_kill",
+      "unit": "npc_dota_creep_goodguys_melee",
+      "key": "npc_dota_badguys_tower1_bot"
+    },
+    {
+      "time": 709,
+      "type": "building_kill",
+      "unit": "npc_dota_creep_goodguys_melee",
+      "key": "npc_dota_badguys_tower1_mid"
+    },
+    { "time": 1033, "type": "CHAT_MESSAGE_COURIER_LOST", "team": 6 },
+    {
+      "time": 1192,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_weaver",
+      "key": "npc_dota_goodguys_tower1_bot",
+      "slot": 9,
+      "player_slot": 132
+    },
+    { "time": 1214, "type": "CHAT_MESSAGE_ROSHAN_KILL", "team": 2 },
+    { "time": 1216, "type": "CHAT_MESSAGE_AEGIS", "slot": 0, "player_slot": 0 },
+    {
+      "time": 1282,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_ogre_magi",
+      "key": "npc_dota_badguys_tower2_top",
+      "slot": 1,
+      "player_slot": 1
+    },
+    {
+      "time": 1498,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_techies",
+      "key": "npc_dota_badguys_tower2_mid",
+      "slot": 2,
+      "player_slot": 2
+    },
+    {
+      "time": 1773,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_skeleton_king",
+      "key": "npc_dota_badguys_tower2_bot",
+      "slot": 4,
+      "player_slot": 4
+    },
+    { "time": 1860, "type": "CHAT_MESSAGE_ROSHAN_KILL", "team": 2 },
+    { "time": 1862, "type": "CHAT_MESSAGE_AEGIS", "slot": 0, "player_slot": 0 },
+    {
+      "time": 1912,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_luna",
+      "key": "npc_dota_goodguys_tower2_bot",
+      "slot": 8,
+      "player_slot": 131
+    },
+    {
+      "time": 1924,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_skeleton_king",
+      "key": "npc_dota_badguys_tower3_mid",
+      "slot": 4,
+      "player_slot": 4
+    },
+    {
+      "time": 1982,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_batrider",
+      "key": "npc_dota_badguys_melee_rax_mid",
+      "slot": 0,
+      "player_slot": 0
+    },
+    {
+      "time": 1994,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_skeleton_king",
+      "key": "npc_dota_badguys_range_rax_mid",
+      "slot": 4,
+      "player_slot": 4
+    },
+    {
+      "time": 2043,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_skeleton_king",
+      "key": "npc_dota_badguys_tower3_bot",
+      "slot": 4,
+      "player_slot": 4
+    },
+    {
+      "time": 2077,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_skeleton_king",
+      "key": "npc_dota_badguys_melee_rax_bot",
+      "slot": 4,
+      "player_slot": 4
+    },
+    {
+      "time": 2079,
+      "type": "building_kill",
+      "unit": "npc_dota_creep_goodguys_melee",
+      "key": "npc_dota_badguys_range_rax_bot"
+    },
+    {
+      "time": 2089,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_skeleton_king",
+      "key": "npc_dota_badguys_tower4",
+      "slot": 4,
+      "player_slot": 4
+    },
+    {
+      "time": 2107,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_skeleton_king",
+      "key": "npc_dota_badguys_tower4",
+      "slot": 4,
+      "player_slot": 4
+    },
+    {
+      "time": 2121,
+      "type": "building_kill",
+      "unit": "npc_dota_hero_skeleton_king",
+      "key": "npc_dota_badguys_fort",
+      "slot": 4,
+      "player_slot": 4
+    }
+  ],
+  "picks_bans": [
+    { "is_pick": true, "hero_id": 105, "team": 0, "order": 0 },
+    { "is_pick": true, "hero_id": 26, "team": 1, "order": 1 },
+    { "is_pick": true, "hero_id": 14, "team": 0, "order": 2 },
+    { "is_pick": true, "hero_id": 63, "team": 1, "order": 3 },
+    { "is_pick": true, "hero_id": 16, "team": 1, "order": 4 },
+    { "is_pick": true, "hero_id": 84, "team": 0, "order": 5 },
+    { "is_pick": true, "hero_id": 42, "team": 0, "order": 6 },
+    { "is_pick": true, "hero_id": 48, "team": 1, "order": 7 },
+    { "is_pick": true, "hero_id": 59, "team": 1, "order": 8 },
+    { "is_pick": true, "hero_id": 65, "team": 0, "order": 9 },
+    { "is_pick": false, "hero_id": 61, "team": 0, "order": 10 },
+    { "is_pick": false, "hero_id": 12, "team": 0, "order": 11 },
+    { "is_pick": false, "hero_id": 92, "team": 0, "order": 12 },
+    { "is_pick": false, "hero_id": 34, "team": 0, "order": 13 }
+  ]
+}

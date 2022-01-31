@@ -1,8 +1,8 @@
-import { LiveGame } from "../../models/live-matches.interfaces";
-import { ContextObject, DataPass } from "./../../models/context-object.interface";
-import { OpenDotaService } from "./../../services/open-dota.service";
-import { OpenDotaMatchResponse } from "./../../models/open-dota-match-response.interface";
-import { LIVE_MATCHES, MATCHES } from "./../../constants";
+import { LiveGame } from "../models/live-matches.interfaces";
+import { ContextObject, DataPass } from "../models/context-object.interface";
+import { OpenDotaService } from "../services/open-dota.service";
+import { OpenDotaMatch } from "../models/open-dota-match.interface";
+import { LIVE_MATCHES, MATCHES } from "../constants";
 import { Inject, Injectable } from "@nestjs/common";
 import {
   BehaviorSubject,
@@ -18,10 +18,10 @@ import {
   throttleTime
 } from "rxjs";
 import { Collection } from "mongodb";
-import { LiveMatchRepo } from "../live-match/live-match.repo";
-import { LiveGameDocument } from "../../models/live-matches.interfaces";
+import { LiveMatchRepo } from "./live-match.repo";
+import { LiveGameDocument } from "../models/live-matches.interfaces";
 
-export type MatchPass = DataPass<OpenDotaMatchResponse>;
+export type MatchPass = DataPass<OpenDotaMatch>;
 
 @Injectable()
 export class MatchesRepo {
@@ -32,7 +32,7 @@ export class MatchesRepo {
 
   constructor(
     @Inject(MATCHES)
-    private readonly matchCollection: Collection<OpenDotaMatchResponse>,
+    private readonly matchCollection: Collection<OpenDotaMatch>,
     @Inject(LIVE_MATCHES)
     private liveMatchCollection: Collection<LiveGameDocument>,
     private readonly opendota: OpenDotaService,
@@ -233,7 +233,7 @@ export class MatchesRepo {
                 };
               });
 
-              const clippedData: OpenDotaMatchResponse = {
+              const clippedData: OpenDotaMatch = {
                 match_id,
                 radiant_win,
                 cluster,

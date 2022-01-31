@@ -1,8 +1,8 @@
-import { OpenDotaService } from "./../../services/open-dota.service";
+import { OpenDotaService } from "../services/open-dota.service";
 import { Inject, Injectable } from "@nestjs/common";
 import { Db, FindOptions, WithId } from "mongodb";
-import { DATABASE_CONNECTION } from "../../constants";
-import { configDotaConstants, ConstantConfig } from "../../models/dota-constants-sync.config";
+import { DATABASE_CONNECTION } from "../constants";
+import { configDotaConstants, ConstantConfig } from "../models/dota-constants-sync.config";
 import { firstValueFrom, from, map } from "rxjs";
 
 @Injectable()

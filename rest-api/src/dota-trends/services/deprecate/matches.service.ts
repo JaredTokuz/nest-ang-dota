@@ -1,21 +1,21 @@
+import { ContextObject } from "./../models/context-object.interface";
 import { HttpService } from "@nestjs/axios";
 import { Inject, Injectable } from "@nestjs/common";
 import { Collection, Filter } from "mongodb";
 import { firstValueFrom } from "rxjs";
 import { LIVE_MATCHES, MATCHES } from "../constants";
 import { handleRequests } from "../../handle-request.decorator";
-import { LiveMatchSyncDocument } from "../models/live-match-sync-document.interface";
+import { LiveGameDocument } from "../models/live-matches.interfaces";
 import { delay } from "../../misc";
-import { AutomateContext } from "../services/automate-sync.service";
-import { OpenDotaMatchResponse } from "../models/open-dota-match-response.interface";
+import { OpenDotaMatch } from "../models/open-dota-match-response.interface";
 
 @Injectable()
 export class MatchesService {
   constructor(
     @Inject(MATCHES)
-    private matchCollection: Collection<OpenDotaMatchResponse>,
+    private matchCollection: Collection<OpenDotaMatch>,
     @Inject(LIVE_MATCHES)
-    private liveMatchCollection: Collection<LiveMatchSyncDocument>,
+    private liveMatchCollection: Collection<LiveGameDocument>,
     private httpService: HttpService
   ) {}
 
@@ -24,7 +24,7 @@ export class MatchesService {
    * and runs a parse on each of them
    * @returns success message on completion
    */
-  async sync(ctx?: AutomateContext) {
+  async sync(ctx?: ContextObject) {
     try {
       /** ? DEPRECATE?? : Get the elgible live matches; get activate_time's that are older than an hour */
       // const hourAgoUnixTimestamp =
@@ -71,7 +71,7 @@ export class MatchesService {
   @handleRequests(3000, 9)
   async parse(matchId: string) {
     try {
-      const { data } = await firstValueFrom(this.httpService.get<OpenDotaMatchResponse>(`matches/${matchId}`));
+      const { data } = await firstValueFrom(this.httpService.get<OpenDotaMatch>(`matches/${matchId}`));
       console.log(`Retrieved match id ${matchId}`);
       /** check if the game finished by checking for radiant_win property and
        * the last array item from objectives for fort building
@@ -94,6 +94,7 @@ export class MatchesService {
       /** format the match data before upserting */
       const {
         match_id,
+        radiant_win,
         cluster,
         duration,
         radiant_gold_adv,
@@ -199,8 +200,9 @@ export class MatchesService {
         };
       });
 
-      const clippedData: OpenDotaMatchResponse = {
+      const clippedData: OpenDotaMatch = {
         match_id,
+        radiant_win,
         cluster,
         duration,
         radiant_gold_adv,
@@ -240,7 +242,7 @@ export class MatchesService {
    * @param query a filter operation to be used to query the collection
    * @returns an array of mongo documents matching the query
    */
-  get(query: Filter<OpenDotaMatchResponse>) {
+  get(query: Filter<OpenDotaMatch>) {
     return this.matchCollection.find(query).toArray();
   }
 }

@@ -1,19 +1,19 @@
-import { ContextObject } from "./../../models/context-object.interface";
-import { MatchesRepo, MatchPass } from "./../matches/matches.repo";
-import { OpenDotaMatchResponse } from "./../../models/open-dota-match-response.interface";
-import { MATCHES } from "./../../constants";
+import { ContextObject } from "../models/context-object.interface";
+import { MatchesRepo, MatchPass } from "./matches.repo";
+import { OpenDotaMatch } from "../models/open-dota-match.interface";
+import { MATCHES } from "../constants";
 import { Inject, Injectable } from "@nestjs/common";
 import { BehaviorSubject, concatAll, concatMap, delay, from, map, Observable, of, tap } from "rxjs";
 import { Collection } from "mongodb";
 
 @Injectable()
 export class LevelTwoMatchesRepo {
-  private subject = new BehaviorSubject<OpenDotaMatchResponse>(null);
-  levelTwomatch$: Observable<OpenDotaMatchResponse> = this.subject.asObservable();
+  private subject = new BehaviorSubject<OpenDotaMatch>(null);
+  levelTwomatch$: Observable<OpenDotaMatch> = this.subject.asObservable();
 
   constructor(
     @Inject(MATCHES)
-    private readonly matchCollection: Collection<OpenDotaMatchResponse>,
+    private readonly matchCollection: Collection<OpenDotaMatch>,
     private readonly matchesRepo: MatchesRepo
   ) {
     this.matchesRepo.match$
@@ -49,7 +49,7 @@ export class LevelTwoMatchesRepo {
     );
   }
 
-  teamComp(match: OpenDotaMatchResponse, team: "radiant" | "dire") {
+  teamComp(match: OpenDotaMatch, team: "radiant" | "dire") {
     return match.players
       .filter(player => {
         if (team == "radiant") return player.player_slot <= 4;

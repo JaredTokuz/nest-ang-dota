@@ -1,15 +1,15 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { ConstantsService } from "./constants.repo";
+import { LevelTwoMatchesRepo } from "../level-two-matches.repo";
 
-describe("ConstantsService", () => {
-  let service: ConstantsService;
+describe("LevelTwoMatchesRepo", () => {
+  let service: LevelTwoMatchesRepo;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ConstantsService]
+      providers: [LevelTwoMatchesRepo]
     }).compile();
 
-    service = module.get<ConstantsService>(ConstantsService);
+    service = module.get<LevelTwoMatchesRepo>(LevelTwoMatchesRepo);
   });
 
   it("should be defined", () => {
