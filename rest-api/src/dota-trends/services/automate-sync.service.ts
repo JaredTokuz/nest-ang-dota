@@ -1,13 +1,13 @@
+import { LevelTwoHero } from "./../models/level-two-match.interface";
 import { LiveMatchRepo } from "../repositories/live-match.repo";
 import { difference, unixTimestamp } from "../../misc";
 import { Rollup, TaskName } from "../logging-stuff/task-rollup.interface";
 import { Inject, Injectable } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { MatchesService } from "../services/matches.service";
 import { SharedFields } from "../logging-stuff/db-logger.interfaces";
 import { DBLogger } from "../logging-stuff/db-logger";
 import { TaskRollup } from "../logging-stuff/task-rollup";
-import { DATABASE_CONNECTION, LIVE_MATCHES, MATCHES } from "../constants";
+import { DATABASE_CONNECTION, LIVE_MATCHES, LVL_TWO_HEROES, MATCHES } from "../constants";
 import { Db } from "mongodb";
 import { LiveGameDocument } from "../models/live-matches.interfaces";
 import { OpenDotaMatch } from "../models/open-dota-match.interface";
@@ -51,39 +51,6 @@ export class AutomateSyncService {
     } else {
       /** run main job */
       this.liveRepo.requestSync({ ...ctx, data: "new" });
-      //   this.liveRepo.sync(ctx).subscribe({
-      //     next: val => {
-      //       console.log(val);
-      //       taskRollup.markComplete(dbLogger.runId);
-      //     },
-      //     error: err => {
-      //       console.log(err);
-      //       taskRollup.markError(dbLogger.runId, err.toString(), dbLogger.lastMessage);
-      //     },
-      //     complete: () => {
-      //       console.log("complete");
-      //     }
-      //   });
-      //   return this.liveMatchesSyncService
-      //     .sync(ctx)
-      //     .then(async value => {
-      //       await dbLogger.log("debug", "sync live matches", value);
-
-      //       return this.matchesService.sync(ctx);
-      //     })
-      //     .then(async val => {
-      //       /** then on success */
-      //       await dbLogger.log("log", `parsed thru ${val.successes} out of ${val.total}`, val);
-      //       return taskRollup.markComplete(dbLogger.runId);
-      //     })
-      //     .catch(async e => {
-      //       /** catch on error */
-      //       await dbLogger.log("log", `Failed: ${e.toString()}`);
-      //       return taskRollup.markError(dbLogger.runId, e.toString(), dbLogger.lastMessage);
-      //     })
-      //     .finally(() => {
-      //       /** finally do */
-      //     });
     }
   }
 
@@ -110,6 +77,7 @@ export class AutomateSyncService {
         /** run main job */
         const liveMatchesCollection = this.db.collection<LiveGameDocument>(LIVE_MATCHES);
         const matchesCollection = this.db.collection<OpenDotaMatch>(MATCHES);
+        const levelTwoHeroes = this.db.collection<LevelTwoHero>(LVL_TWO_HEROES);
 
         const d = new Date();
         const delta = 4;
@@ -143,6 +111,39 @@ export class AutomateSyncService {
                 orphans: orphans
               });
               await matchesCollection
+                .deleteMany({
+                  match_id: { $in: orphans.map(x => Number(x)) }
+                })
+                .then(async val => {
+                  await dbLogger.log("debug", `${MATCHES} deleteMany orphans`, val);
+                });
+            }
+            page += pageSize;
+          } else {
+            break;
+          }
+        } while (true);
+
+        /** delete level two match data here as well  */
+        page = 0;
+        do {
+          const batch = await levelTwoHeroes
+            .find({}, { projection: { match_id: 1 } })
+            .skip(page)
+            .limit(pageSize)
+            .toArray();
+          if (batch.length > 0) {
+            const match_idStringd = batch.map(x => x.match_id.toString());
+            /** TODO NEED To delete level two match data here as well  */
+            const liveDocsExist = await liveMatchesCollection.find({ match_id: { $in: match_idStringd } }).toArray();
+            if (liveDocsExist.length != batch.length) {
+              const orphans = [
+                ...difference<string>(new Set(match_idStringd), new Set(liveDocsExist.map(x => x.match_id)))
+              ];
+              await dbLogger.log("error", `deleting orphan ${MATCHES} records... ${orphans.length}`, {
+                orphans: orphans
+              });
+              await levelTwoHeroes
                 .deleteMany({
                   match_id: { $in: orphans.map(x => Number(x)) }
                 })

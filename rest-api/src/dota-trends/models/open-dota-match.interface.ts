@@ -44,10 +44,10 @@ export interface Objective {
   time: number;
   /** category */
   type: ObjectiveType;
-  /** player slot but doesnt match right for dire */
+  /** player slot winner but doesnt match right for dire 0-9 */
   slot?: number;
-  /** usually id of the target */
-  key?: any;
+  /** usually id of the target but it is 0-9 for fb but building a string of building name*/
+  key?: number | string;
   /** matches the real player_slot */
   player_slot?: number;
   /** similar to slot but unit is missing so you need to convert the dire mistake use >= 5 */
@@ -66,9 +66,13 @@ type ObjectiveType =
 export type PicksBans = PicksBan[];
 
 export interface PicksBan {
+  /** true=picked false=banned */
   is_pick: boolean;
+  /** hero */
   hero_id: number;
+  /** 0=radiant 1=dire */
   team: number;
+  /** sequence order 0-9 bans shown are all the player voted bans (not all bans go thru)  */
   order: number;
 }
 
@@ -94,6 +98,7 @@ export interface TeamfightsPlayers {
 }
 
 export interface Player {
+  /** 0-4 & 128-132 */
   player_slot: number;
   ability_targets: { [ability: string]: { [enemy_hero: string]: number } };
   /** ability ids in order */
@@ -196,4 +201,7 @@ export interface Player {
     };
   };
   [key: string]: unknown;
+  isRadiant: boolean;
+  win: boolean;
+  lose: boolean;
 }

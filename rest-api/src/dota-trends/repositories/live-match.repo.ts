@@ -50,7 +50,7 @@ export class LiveMatchRepo {
     return from(
       this.liveMatchCollection
         .find({
-          $and: [{ game_finished: { $ne: true } }, { idsyncDate: { $lt: +new Date() - 1000 * 60 * 15 } }]
+          $and: [{ game_finished: { $ne: true } }, { syncDate: { $lt: +new Date() - 1000 * 60 * 15 } }]
         })
         .toArray()
     ).pipe(
@@ -83,7 +83,7 @@ export class LiveMatchRepo {
                 updateOne: {
                   filter: { match_id: x_1.match_id },
                   update: {
-                    $currentDate: { idsyncDate: true },
+                    $currentDate: { syncDate: true },
                     $set: {
                       match_id: x_1.match_id,
                       activate_time: x_1.activate_time,

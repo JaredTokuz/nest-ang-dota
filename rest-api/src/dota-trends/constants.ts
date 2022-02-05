@@ -2,6 +2,7 @@ export const DATABASE_CONNECTION = "DATABASE_CONNECTION";
 export const OPENDOTA_BASE_URL = "https://api.opendota.com/api";
 export const LIVE_MATCHES = "liveMatches";
 export const MATCHES = "matches";
+export const LVL_TWO_HEROES = "level-two-heroes";
 
 /** some constants are not retriavable from the api...
  * so manually create them here

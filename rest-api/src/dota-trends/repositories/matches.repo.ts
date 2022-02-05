@@ -40,21 +40,17 @@ export class MatchesRepo {
   ) {
     this.liveRepo.liveMatches$
       .pipe(
-        map(val => {
-          const { data, ...ctx } = val;
-          /** inject the ctx in every live game */
-          return data.map(game => {
-            return {
-              data: game,
-              ctx
-            };
-          });
-        }),
-        /** reshapes the single obs array value into an array of individual obs values */
-        concatAll(),
-        /** process one at a time with a delay */
         concatMap(val => {
-          return this.parse(val.data.match_id, false, val.ctx).pipe(delay(2000));
+          return of(val).pipe(
+            map(x => x.data),
+            /** reshapes the single obs array value into an array of individual obs values */
+            concatAll(),
+            /** process one at a time with a delay */
+            concatMap(record => {
+              const { data, ...ctx } = val;
+              return this.parse(record.match_id, false, ctx).pipe(delay(2000));
+            })
+          );
         })
       )
       .subscribe();
@@ -103,7 +99,7 @@ export class MatchesRepo {
                     .updateOne(
                       { match_id: match.match_id },
                       {
-                        $currentDate: { idsyncDate: true },
+                        $currentDate: { syncDate: true },
                         $set: {
                           match_id: match.match_id,
                           objectives: match.objectives
@@ -135,7 +131,8 @@ export class MatchesRepo {
                 teamfights,
                 players,
                 patch,
-                radiant_win
+                radiant_win,
+                objectives
               } = match;
               const clippedTeamfights = teamfights.map(tf => {
                 const clippedTeamfightsPlayers = tf.players.map(tfp => {
@@ -242,6 +239,7 @@ export class MatchesRepo {
                 radiant_xp_adv,
                 draft_timings,
                 picks_bans,
+                objectives,
                 patch,
                 teamfights: clippedTeamfights,
                 players: clippedPlayers
@@ -253,7 +251,7 @@ export class MatchesRepo {
                   .updateOne(
                     { match_id: match_id },
                     {
-                      $currentDate: { idsyncDate: true },
+                      $currentDate: { syncDate: true },
                       $set: clippedData
                     },
                     {
@@ -292,6 +290,15 @@ export class MatchesRepo {
     }
   }
 
+  requestAllMatches(ctx: ContextObject) {
+    this.requestSubject.next(ctx);
+  }
+
+  /**
+   * this is for consumers of the level one match which is why it is individually added
+   * @param ctx
+   * @returns
+   */
   pushAll(ctx: ContextObject) {
     return from(
       this.matchCollection

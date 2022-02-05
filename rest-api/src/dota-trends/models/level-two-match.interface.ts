@@ -1,50 +1,110 @@
-// export interface LevelTwoMatchData {
-//   /** uuid */
-//   match_id: number;
-//   /** patch id */
-//   patch: number;
-//   /** used to get region info */
-//   cluster: number;
-//   /** in seconds */
-//   duration: number;
-//   /** get the bans in order not sure */
-//   draft_timings: any[];
-//   /** the banning order seems to be off */
-//   picks_bans: any[];
-//   heroes: { [id: number]: LevelTwoHeroes };
-// }
-
-export interface LevelTwoHeroes {
-  /** uuid */
-  match_id: number;
+export interface LevelTwoHero {
+  /** uuid 1 */
+  match_id;
+  /** uuid 2 */
+  hero_id: number;
   /** patch id */
   patch: number;
   /** used to get region info */
   cluster: number;
   /** in seconds */
   duration: number;
-  /** get the bans in order not sure */
-  draft_timings: any[];
-  /** the banning order seems to be off */
-  picks_bans: any[];
+
+  syncDate: Date;
+
+  /** get the bans in order not sure useless just voted bans */
+  //   draft_timings: any[];
+  /** the banning order is off; they are just voted bans */
+  //   picks_bans: PicksBans;
+
+  /** voted bans hero_id[] */
+  voted_bans: number[];
+
+  /** built in the call no changes */
+  teamfight_participation: number;
+  lane_efficiency: number;
+  benchmarks: any;
+  is_roaming: boolean;
 
   calculated: CalculatedFields;
 }
 
+export type Role = 1 | 2 | 3 | 4 | 5;
+
+export type Faction = "radiant" | "dire";
+
+export type FirstbloodObj = {
+  time: number;
+  /** role that got the last hit */
+  roleLasthit: Role;
+  /** role that got killed */
+  roleDied: Role;
+  /** got the last hit :) */
+  lasthit?: boolean;
+  /** gave first blood :( */
+  died?: boolean;
+  /** hero_id */
+  heroLasthit: number;
+  heroDied: number;
+};
+
 interface CalculatedFields {
-  team: "radiant" | "dire";
-  role: 1 | 2 | 3 | 4 | 5;
+  team: Faction;
+  role: Role;
   win: boolean;
-  hero_id: number;
-  firstblood_claimed: number;
-  is_roaming: boolean;
-  stamps: {
+
+  /** 0-9 */
+  pick_order: number;
+
+  firstblood: FirstbloodObj;
+
+  buildings: {
+    /** team and lane and depth */
+    [name: string]: {
+      team: Faction;
+      lane: "safe" | "mid" | "off" | "fort";
+      depth: number;
+      deny: boolean;
+      creep: boolean;
+      role?: Role;
+      hero?: number;
+      time: number;
+    };
+  };
+
+  starting_items: {
+    start: { [name: string]: number };
+    first30: { [name: string]: number };
+  };
+
+  stamps?: {
     [minute in MinuteKeys]: {
       simple: {
         [sum in SumTypes]: LevelTwoPlayerStamps;
       };
       diff: {
         [sum in SumTypes]: LevelTwoPlayerStamps;
+      };
+
+      /** TODO */
+
+      objectives: {
+        lhFirstblood?: boolean;
+        diedFirstblood?: boolean;
+        enemyTowers: number;
+        allyTowers: number;
+        roshanKill: number;
+        roshanAegis: number;
+        enemyCouriers: number;
+        allyCouriers: number;
+      };
+
+      killed_roles?: {
+        1: number;
+        2: number;
+        3: number;
+        4: number;
+        5: number;
       };
 
       team_adv: {
@@ -96,9 +156,9 @@ interface LevelTwoPlayerTeamfightStamps {
 }
 
 interface SkillBuild {
-  first: 1 | 2 | 3 | 4;
-  second: 1 | 2 | 3 | 4;
-  third: 1 | 2 | 3 | 4;
+  first: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  second: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  third: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   ultimate: 1 | 2 | 3 | 4;
   attributes: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   talent10: "right" | "left" | "both";
