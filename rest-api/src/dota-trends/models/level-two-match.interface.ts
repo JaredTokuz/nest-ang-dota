@@ -72,7 +72,7 @@ interface CalculatedFields {
     };
   };
 
-  starting_items: {
+  starting_items?: {
     start: { [name: string]: number };
     first30: { [name: string]: number };
   };
