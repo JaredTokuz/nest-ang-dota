@@ -56,7 +56,7 @@ export interface Objective {
   unit?: string;
 }
 
-type ObjectiveType =
+export type ObjectiveType =
   | "CHAT_MESSAGE_FIRSTBLOOD"
   | "CHAT_MESSAGE_COURIER_LOST"
   | "building_kill"
@@ -86,7 +86,7 @@ export interface Teamfights {
 export interface TeamfightsPlayers {
   ability_uses: { [key: string]: number };
   item_uses: { [key: string]: number };
-  killed: any;
+  killed: { [npc_hero: string]: 1 };
   deaths: number;
   buybacks: number;
   damage: number;
@@ -96,6 +96,12 @@ export interface TeamfightsPlayers {
   xp_start: number;
   [key: string]: unknown;
 }
+
+export type PurchaseLogs = {
+  time: number;
+  key: string;
+  charges?: number;
+}[];
 
 export interface Player {
   /** 0-4 & 128-132 */
@@ -142,23 +148,24 @@ export interface Player {
     time: number;
     /** the hero name */
     key: string;
-  };
+  }[];
   /** last hits 1 minute array */
   lh_t: number[];
   /** idk find out */
   life_state: { [id: string]: number };
   /** obs wards deaths */
   obs_left_log: any[];
-  /** obs placed */
-  obs_log: any[];
+  /** obs placed x&y=0-190 */
+  obs_log: {
+    time: number;
+    x: number;
+    y: number;
+    player_slot: number;
+  }[];
   party_id: number;
   party_size: number;
   permanent_buffs: any[];
-  purchase_log: {
-    time: number;
-    key: string;
-    charges?: number;
-  }[];
+  purchase_log: PurchaseLogs;
   runes_log: {
     time: number;
     key: string;
@@ -166,7 +173,12 @@ export interface Player {
   /** sentry obs wards deaths */
   sen_left_log: any[];
   /** sentry obs placed */
-  sen_log: any[];
+  sen_log: {
+    time: number;
+    x: number;
+    y: number;
+    player_slot: number;
+  }[];
   stuns: number;
   /** percentage number */
   teamfight_participation: number;
@@ -184,7 +196,9 @@ export interface Player {
   ancient_kills: number;
   tower_kills: number;
   roshan_kills: number;
+  /** 1=bot 2=mid 3=top */
   lane: number;
+  /** 1=safe 2=mid 3=off */
   lane_role: number;
   observer_kills: number;
   sentry_kills: number;
@@ -200,6 +214,8 @@ export interface Player {
       pct: number;
     };
   };
+  /** example : 0,60,120,180,240 */
+  times: number[];
   [key: string]: unknown;
   isRadiant: boolean;
   win: boolean;
