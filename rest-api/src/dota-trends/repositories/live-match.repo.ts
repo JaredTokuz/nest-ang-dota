@@ -15,7 +15,7 @@ export class LiveMatchRepo {
   liveMatches$: Observable<LiveMatchPass> = this.subject.asObservable();
 
   private requestSubject = new Subject<SyncPass>();
-  //   requestSync$: Observable<ContextObject> = this.requestSubject.asObservable();
+  /** internal observable */
 
   constructor(
     @Inject(LIVE_MATCHES)
