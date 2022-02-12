@@ -3,10 +3,10 @@ import { AxiosResponse, AxiosError } from "axios";
 import { delay, delayWhen, map, Observable, retryWhen, scan, take, tap, timer } from "rxjs";
 import { DBLogger } from "../logging-stuff/db-logger";
 
-export const standardRetryStrategy = <T>(obs: Observable<AxiosResponse<T>>): Observable<T> => {
+export const standardRetryStrategy = <T>(obs: Observable<AxiosResponse<T>>, opts: RetryOpts): Observable<T> => {
   return obs.pipe(
     map(resp => resp.data as T),
-    retryStrat()
+    retryStrat(opts)
   );
 };
 
@@ -26,8 +26,14 @@ export const isAxiosError = (obj: any): obj is AxiosError => {
 
 export const minutesInMS = (minutes: number) => minutes * 60 * 1000;
 
+type RetryOpts = {
+  logger?: Logger | ScheduleContext;
+  msdelay?: number;
+  retries?: number;
+};
+
 const retryStrat = <T>(
-  { logger, msdelay, retries }: { logger?: Logger | ScheduleContext; msdelay: number; retries: number } = {
+  { logger, msdelay, retries }: RetryOpts = {
     msdelay: 0,
     retries: 0
   }

@@ -43,22 +43,24 @@ export class LiveMatchRepo {
   }
 
   /**
+   * Get the unfinished fields
    * @param ctx
    * @returns
    */
-  retryAny(force?: boolean, ctx?: ContextObject) {
+  getUnfinished(force?: boolean, ctx?: ContextObject) {
     return from(
       this.liveMatchCollection
         .find({
           $and: [{ game_finished: { $ne: true } }, { syncDate: { $lt: +new Date() - 1000 * 60 * 15 } }]
         })
         .toArray()
-    ).pipe(
-      tap(data => {
-        ctx.logger.log("info", "retry matches", { data });
-        this.subject.next({ ...ctx, data });
-      })
     );
+    // .pipe(
+    //   tap(data => {
+    //     ctx.logger.log("info", "retry matches", { data });
+    //     this.subject.next({ ...ctx, data });
+    //   })
+    // );
     //   .subscribe({
     //     complete: () => ctx
     //   });
@@ -98,7 +100,6 @@ export class LiveMatchRepo {
         ).pipe(
           tap(bulkWriteRes => {
             ctx.logger.log("info", "bulkwrite complete", { data, mongo: bulkWriteRes });
-            this.subject.next({ ...ctx, data: res });
           })
         );
       })
