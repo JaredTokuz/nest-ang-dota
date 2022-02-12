@@ -1,28 +1,39 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { LIVE_MATCHES, OPENDOTA_BASE_URL } from "../constants";
 import { HttpService } from "@nestjs/axios";
-import { OpenDotaLiveResponse } from "../models/live-matches.interfaces";
-import { OpenDotaMatch } from "../models/open-dota-match.interface";
-import { ConstantConfig } from "../models/dota-constants-sync.config";
-import { standardRetryStrategy } from "./standard-retry-strategy";
+import { OpenDotaLiveResponse } from "../interfaces/live-matches";
+import { OpenDotaMatch } from "../interfaces/open-dota-match";
+import { ConstantConfig } from "../interfaces/dota-constants-sync";
+import { RetryOpts, standardRetryStrategy } from "../../functions/standard-retry-strategy";
+import { Context } from "../../interfaces/process";
 
 @Injectable()
 export class OpenDotaService {
+  ctx: Context = undefined;
+  strat: RetryOpts = {
+    msdelay: 5000,
+    retries: 10,
+    logger: this.ctx
+  };
   constructor(private httpService: HttpService) {}
 
-  liveMatches() {
-    return standardRetryStrategy(this.get<OpenDotaLiveResponse>("/live"));
-  }
-
-  matches(matchId: string) {
-    return standardRetryStrategy(this.get<OpenDotaMatch>(`matches/${matchId}`));
-  }
-
-  constants(config: ConstantConfig) {
-    return standardRetryStrategy(this.get<any>(`constants/${config.resource}`));
+  set(ctx: Context) {
+    this.ctx = ctx;
   }
 
   get<T>(path: string) {
     return this.httpService.get<T>(OPENDOTA_BASE_URL + path);
+  }
+
+  liveMatches() {
+    return standardRetryStrategy(this.get<OpenDotaLiveResponse>("/live"), this.strat);
+  }
+
+  matches(matchId: string) {
+    return standardRetryStrategy(this.get<OpenDotaMatch>(`matches/${matchId}`), this.strat);
+  }
+
+  constants(config: ConstantConfig) {
+    return standardRetryStrategy(this.get<any>(`constants/${config.resource}`), this.strat);
   }
 }

@@ -10,15 +10,15 @@ import {
   SkillBuild,
   Stamps,
   SumTypes
-} from "./../models/level-two-match.interface";
-import { ContextObject } from "../models/context-object.interface";
+} from "../interfaces/level-two-match";
+import { ContextObject } from "../interfaces/context-object";
 import { MatchesRepo, MatchPass } from "./matches.repo";
-import { Objective, Objectives, OpenDotaMatch, Player } from "../models/open-dota-match.interface";
+import { Objective, Objectives, OpenDotaMatch, Player } from "../interfaces/open-dota-match";
 import { LVL_TWO_HEROES, MATCHES } from "../constants";
 import { Inject, Injectable } from "@nestjs/common";
 import { BehaviorSubject, concatAll, concatMap, delay, from, map, Observable, of, tap } from "rxjs";
 import { Collection } from "mongodb";
-import { FirstbloodObj, LevelTwoHero, Role } from "../models/level-two-match.interface";
+import { FirstbloodObj, LevelTwoHero, Role } from "../interfaces/level-two-match";
 
 interface PreCalPlayer extends Player {
   calculatedRole: number;

@@ -1,5 +1,5 @@
-import { ContextObject, DataPass } from "../models/context-object.interface";
-import { OpenDotaLiveResponse, LiveGameDocument, LiveGame } from "../models/live-matches.interfaces";
+import { ContextObject, DataPass } from "../interfaces/context-object";
+import { OpenDotaLiveResponse, LiveGameDocument, LiveGame } from "../interfaces/live-matches";
 import { OpenDotaService } from "../services/open-dota.service";
 import { Inject, Injectable } from "@nestjs/common";
 import { Collection } from "mongodb";
@@ -14,7 +14,7 @@ export class LiveMatchRepo {
   private subject = new Subject<LiveMatchPass>();
   liveMatches$: Observable<LiveMatchPass> = this.subject.asObservable();
 
-  private requestSubject = new Subject<SyncPass>();
+  //   private requestSubject = new Subject<SyncPass>();
   /** internal observable */
 
   constructor(
@@ -22,16 +22,16 @@ export class LiveMatchRepo {
     private readonly liveMatchCollection: Collection<LiveGameDocument>,
     private readonly opendota: OpenDotaService
   ) {
-    this.requestSubject
-      .asObservable()
-      .pipe(
-        throttleTime(1000 * 15),
-        map(val => {
-          if (val.data == "new") return this.sync(val);
-          if (val.data == "retry") return this.retryAny(false, val);
-        })
-      )
-      .subscribe();
+    // this.requestSubject
+    //   .asObservable()
+    //   .pipe(
+    //     throttleTime(1000 * 15),
+    //     map(val => {
+    //       if (val.data == "new") return this.sync(val);
+    //       if (val.data == "retry") return this.retryAny(false, val);
+    //     })
+    //   )
+    //   .subscribe();
   }
 
   /**

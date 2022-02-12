@@ -3,7 +3,7 @@ import { DATABASE_CONNECTION } from "../../constants";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { Filter, Db, FindOptions } from "mongodb";
-import { configDotaConstants, ConstantConfig } from "../../models/dota-constants-sync.config";
+import { configDotaConstants, ConstantConfig } from "../../interfaces/dota-constants-sync";
 
 @Injectable()
 export class DotaConstantsSyncService {

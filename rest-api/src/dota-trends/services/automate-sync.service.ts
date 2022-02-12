@@ -1,4 +1,4 @@
-import { LevelTwoHero } from "./../models/level-two-match.interface";
+import { LevelTwoHero } from "../interfaces/level-two-match";
 import { LiveMatchRepo } from "../repositories/live-match.repo";
 import { difference, unixTimestamp } from "../../misc";
 import { Rollup, TaskName } from "../logging-stuff/task-rollup.interface";
@@ -9,9 +9,9 @@ import { DBLogger } from "../logging-stuff/db-logger";
 import { TaskRollup } from "../logging-stuff/task-rollup";
 import { DATABASE_CONNECTION, LIVE_MATCHES, LVL_TWO_HEROES, MATCHES } from "../constants";
 import { Db } from "mongodb";
-import { LiveGameDocument } from "../models/live-matches.interfaces";
-import { OpenDotaMatch } from "../models/open-dota-match.interface";
-import { ContextObject } from "../models/context-object.interface";
+import { LiveGameDocument } from "../interfaces/live-matches";
+import { OpenDotaMatch } from "../interfaces/open-dota-match";
+import { ContextObject } from "../interfaces/context-object";
 
 interface DailyLiveSync extends Rollup {
   [key: string]: any;

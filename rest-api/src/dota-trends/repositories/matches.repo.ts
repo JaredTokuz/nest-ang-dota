@@ -1,7 +1,7 @@
-import { LiveGame } from "../models/live-matches.interfaces";
-import { ContextObject, DataPass } from "../models/context-object.interface";
+import { LiveGame } from "../interfaces/live-matches";
+import { ContextObject, DataPass } from "../interfaces/context-object";
 import { OpenDotaService } from "../services/open-dota.service";
-import { OpenDotaMatch } from "../models/open-dota-match.interface";
+import { OpenDotaMatch } from "../interfaces/open-dota-match";
 import { LIVE_MATCHES, MATCHES } from "../constants";
 import { Inject, Injectable } from "@nestjs/common";
 import {
@@ -19,7 +19,7 @@ import {
 } from "rxjs";
 import { Collection } from "mongodb";
 import { LiveMatchRepo } from "./live-match.repo";
-import { LiveGameDocument } from "../models/live-matches.interfaces";
+import { LiveGameDocument } from "../interfaces/live-matches";
 
 export type MatchPass = DataPass<OpenDotaMatch>;
 

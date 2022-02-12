@@ -1,9 +1,9 @@
-import { LiveGameDocument } from "./../models/live-matches.interfaces";
+import { LiveGameDocument } from "../interfaces/live-matches";
 import { DATABASE_CONNECTION, MATCHES, LIVE_MATCHES, LVL_TWO_HEROES } from "../constants";
 import { MongoClient, Db } from "mongodb";
-import { OpenDotaMatch } from "../models/open-dota-match.interface";
+import { OpenDotaMatch } from "../interfaces/open-dota-match";
 import { DOTA_MONGO_URI } from "../../environment.dev";
-import { LevelTwoHero } from "../models/level-two-match.interface";
+import { LevelTwoHero } from "../interfaces/level-two-match";
 
 export const databaseProviders = [
   {

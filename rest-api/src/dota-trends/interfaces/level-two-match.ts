@@ -1,4 +1,4 @@
-import { ObjectiveType, PurchaseLogs } from "./open-dota-match.interface";
+import { ObjectiveType, PurchaseLogs } from "./open-dota-match";
 
 export interface LevelTwoHero {
   /** uuid 1 */
