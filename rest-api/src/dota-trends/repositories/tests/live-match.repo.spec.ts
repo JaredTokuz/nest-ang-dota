@@ -32,7 +32,13 @@ describe('LiveMatchRepo', () => {
     repo = module.get<LiveMatchRepo>(LiveMatchRepo);
   });
 
+  describe('Name of the group', () => {
+      
+  });
+
   it('should be defined', () => {
+
+
     expect(repo).toBeDefined();
   });
 });
