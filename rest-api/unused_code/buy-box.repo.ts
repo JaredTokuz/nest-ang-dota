@@ -1,15 +1,15 @@
-import { HttpService } from "@nestjs/axios";
-import { Inject, Logger } from "@nestjs/common";
-import { clientNameToId } from "@nx-fornida/backend/core-functions";
-import { asin, BuyBoxData, GetOffersResponse, MerchantListing, MerchantPayload } from "@nx-fornida/interfaces";
-import { GetOffersResult } from "@scaleleap/selling-partner-api-sdk/lib/api-models/product-pricing-api-model";
-import { AxiosResponse } from "axios";
-import { Collection, WithId } from "mongodb";
-import { concat, concatMap, delay, from, map, share, Subject, tap } from "rxjs";
-import { INV_ZAYNTEK, SALES_ALGO } from "../contants";
-import { catchErrorStrategy } from "../functions/standard-catch-error-strategy";
-import { retryStrat } from "../functions/standard-retry-strategy";
-import { Context, ProcessTrace, ProcessResponse, ErrorObj } from "../interfaces/process";
+import { HttpService } from '@nestjs/axios';
+import { Inject, Logger } from '@nestjs/common';
+import { clientNameToId } from '@nx-fornida/backend/core-functions';
+import { asin, BuyBoxData, GetOffersResponse, MerchantListing, MerchantPayload } from '@nx-fornida/interfaces';
+import { GetOffersResult } from '@scaleleap/selling-partner-api-sdk/lib/api-models/product-pricing-api-model';
+import { AxiosResponse } from 'axios';
+import { Collection, WithId } from 'mongodb';
+import { concat, concatMap, delay, from, map, share, Subject, tap } from 'rxjs';
+import { INV_ZAYNTEK, SALES_ALGO } from '../contants';
+import { catchErrorStrategy } from '../functions/standard-catch-error-strategy';
+import { retryStrat } from '../functions/standard-retry-strategy';
+import { Context, ProcessTrace, ProcessResponse, ErrorObj } from '../src/interfaces/process';
 
 type MongoMerchListing = asin | WithId<MerchantListing>;
 type MerchantListingCtx = ProcessTrace<MongoMerchListing>;
@@ -34,8 +34,8 @@ export class BuyBoxRepo {
     private readonly salesAlgo: Collection<BuyBoxData>,
     private readonly http: HttpService
   ) {
-    const backend = process.env.backend || "http://localhost:3333";
-    this.url = `${backend}/api/${clientNameToId("zayntek")}/amz/pricing/getItemOffers`;
+    const backend = process.env.backend || 'http://localhost:3333';
+    this.url = `${backend}/api/${clientNameToId('zayntek')}/amz/pricing/getItemOffers`;
   }
 
   /**
@@ -75,7 +75,7 @@ export class BuyBoxRepo {
             };
             return { asin: p.ASIN, merchantPayload, ctx: item.ctx };
           } catch (err) {
-            throw errorObj({ err, msg: "buybox processing$ error during payload calculation" });
+            throw errorObj({ err, msg: 'buybox processing$ error during payload calculation' });
           }
         }),
         concatMap(({ asin, merchantPayload, ctx }) => {
@@ -88,11 +88,11 @@ export class BuyBoxRepo {
               /** update sales algo */
               this.salesAlgo
                 .updateOne(
-                  { date: new Date(new Date().toDateString() + " GMT"), asin: asin },
+                  { date: new Date(new Date().toDateString() + ' GMT'), asin: asin },
                   {
                     $setOnInsert: {
                       asin: asin,
-                      date: new Date(new Date().toDateString() + " GMT"),
+                      date: new Date(new Date().toDateString() + ' GMT'),
                       top1: merchantPayload.buyBoxMetrics.top1,
                       offersCount: merchantPayload.buyBoxMetrics.offersCount,
                       top5DiffAvg: merchantPayload.buyBoxMetrics.top5DiffAvg
@@ -106,7 +106,7 @@ export class BuyBoxRepo {
                   }
                 )
                 .catch(err => {
-                  throw errorObj({ err, msg: "error with mongo updates step 1" });
+                  throw errorObj({ err, msg: 'error with mongo updates step 1' });
                 }),
               /** update inventory */
               this.inventory
@@ -119,17 +119,17 @@ export class BuyBoxRepo {
                   }
                 )
                 .catch(err => {
-                  throw errorObj({ err, msg: "error with mongo updates step 2" });
+                  throw errorObj({ err, msg: 'error with mongo updates step 2' });
                 })
             ]).then(res => {
-              return ProcessResponse<BuyBoxResponse>("success", { asin, merchantPayload }, item.ctx);
+              return ProcessResponse<BuyBoxResponse>('success', { asin, merchantPayload }, item.ctx);
             })
           );
         })
       )
       .pipe(
         // tap((val) => this.logger.log(`processed ${val.payload.asin}`)),
-        catchErrorStrategy(ProcessResponse<BuyBoxResponse>("error", { asin: item.payload.asin }, item.ctx)),
+        catchErrorStrategy(ProcessResponse<BuyBoxResponse>('error', { asin: item.payload.asin }, item.ctx)),
         tap(response => this.subject.next(response))
       );
   }
@@ -144,15 +144,15 @@ export class BuyBoxRepo {
   private httpRequest$(url: string, item: MerchantListingCtx) {
     return this.http
       .request<GetOffersResponse>({
-        method: "GET",
+        method: 'GET',
         url: url,
         params: {
-          itemCondition: "New",
+          itemCondition: 'New',
           asin: item.payload.asin
         },
         headers: {
-          "Content-Type": "application/json",
-          cronjwt: "cron"
+          'Content-Type': 'application/json',
+          cronjwt: 'cron'
         }
       })
       .pipe(retryStrat<AxiosResponse<GetOffersResponse>>({ logger: item.ctx, msdelay: 1500, retries: 2 }), delay(250));
@@ -161,12 +161,12 @@ export class BuyBoxRepo {
 
 const getTop1 = (p: GetOffersResult): number => {
   if (!p.Summary.BuyBoxPrices) return 0;
-  return p.Summary.BuyBoxPrices.find(x => x.condition == "new")?.ListingPrice?.Amount || 0;
+  return p.Summary.BuyBoxPrices.find(x => x.condition == 'new')?.ListingPrice?.Amount || 0;
 };
 
 const getOffersCount = (p: GetOffersResult): number => {
   if (p.Summary.BuyBoxEligibleOffers) {
-    const newCondition = p.Summary.BuyBoxEligibleOffers.filter(x => x.condition == "new");
+    const newCondition = p.Summary.BuyBoxEligibleOffers.filter(x => x.condition == 'new');
     if (newCondition.length > 0) {
       return newCondition.reduce((a, b) => {
         return { OfferCount: a.OfferCount + b.OfferCount };
@@ -178,7 +178,7 @@ const getOffersCount = (p: GetOffersResult): number => {
 
 const top5DiffMetrics = (p: GetOffersResult) => {
   /** based on prices purely (good thing) */
-  const newOffers = p.Offers.filter(x => x.SubCondition == "new");
+  const newOffers = p.Offers.filter(x => x.SubCondition == 'new');
   if (newOffers.length > 0) {
     const bestPrice = newOffers[0]?.Shipping?.Amount || 0 + newOffers[0]?.ListingPrice.Amount || 0;
     const next4 = newOffers.slice(1, 5);

@@ -1,21 +1,21 @@
-import { HttpModule } from "@nestjs/axios";
-import { Logger } from "@nestjs/common";
-import { Test } from "@nestjs/testing";
-import { MerchantListing } from "@nx-fornida/interfaces";
-import { Collection } from "mongodb";
-import { from, concatMap, debounceTime, take } from "rxjs";
-import { DBLogger } from "../classes/db-logger";
-import { DbLoggerMainFields } from "../interfaces/db-logger";
-import { AMZN_ALGO_SCHEDULER_LOGS, INV_ZAYNTEK } from "../contants";
-import { DatabaseModule } from "../../database/database.module";
+import { HttpModule } from '@nestjs/axios';
+import { Logger } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { MerchantListing } from '@nx-fornida/interfaces';
+import { Collection } from 'mongodb';
+import { from, concatMap, debounceTime, take } from 'rxjs';
+import { DBLogger } from '../classes/db-logger';
+import { DbLoggerMainFields } from '../interfaces/db-logger';
+import { AMZN_ALGO_SCHEDULER_LOGS, INV_ZAYNTEK } from '../contants';
+import { DatabaseModule } from '../../database/database.module';
 
-import { BuyBoxRepo } from "../buy-box.repo";
+import { BuyBoxRepo } from '../../../../unused_code/buy-box.repo';
 
 /**
  * testing=true npx jest buy-box.repo.spec.ts --forceExit
  */
 
-describe("BuyBoxRepo", () => {
+describe('BuyBoxRepo', () => {
   let repo: BuyBoxRepo;
   let logger: Collection<DbLoggerMainFields>;
   let inv: Collection<MerchantListing>;
@@ -35,16 +35,16 @@ describe("BuyBoxRepo", () => {
     repo = app.get<BuyBoxRepo>(BuyBoxRepo);
   }, 1000 * 7);
 
-  describe("getData", () => {
+  describe('getData', () => {
     it(
-      "should process the data in test db",
+      'should process the data in test db',
       done => {
         const dbLogger = new DBLogger(logger);
         const ctx = {
           dbLogger
         };
 
-        console.log("Set flag for random samples");
+        console.log('Set flag for random samples');
 
         /** set up the subscription first because share does not store values like shareReplay */
         repo.processing$.pipe(take(10)).subscribe({
@@ -54,16 +54,16 @@ describe("BuyBoxRepo", () => {
                 asin1: v.asin
               })
               .then(doc => {
-                expect(Object.keys(doc)).toContain("salesRank");
-                expect(Object.keys(doc)).toContain("buyBoxMetrics");
+                expect(Object.keys(doc)).toContain('salesRank');
+                expect(Object.keys(doc)).toContain('buyBoxMetrics');
               });
           },
           error: e => {
-            console.log("error out");
+            console.log('error out');
             done(e);
           },
           complete: () => {
-            console.log("complete 1");
+            console.log('complete 1');
             done();
           }
         });
@@ -80,14 +80,14 @@ describe("BuyBoxRepo", () => {
     );
 
     it(
-      "should process this single bad item and throw",
+      'should process this single bad item and throw',
       () => {
         const dbLogger = new DBLogger(logger);
         const ctx = {
           dbLogger
         };
 
-        return repo.syncProduct(["123"], ctx).catch(err => {
+        return repo.syncProduct(['123'], ctx).catch(err => {
           expect(err).toBeTruthy();
           console.log(err);
         });
@@ -96,29 +96,29 @@ describe("BuyBoxRepo", () => {
     );
 
     it(
-      "should process this single item successfully",
+      'should process this single item successfully',
       done => {
         let c = 0;
         /** set up the subscription first because share does not store values like shareReplay */
         repo.processing$.pipe(take(1)).subscribe({
           next: async v => {
             c += 1;
-            console.log("c ", c);
+            console.log('c ', c);
             await inv
               .findOne({
                 asin1: v.asin
               })
               .then(doc => {
-                expect(Object.keys(doc)).toContain("salesRank");
-                expect(Object.keys(doc)).toContain("buyBoxMetrics");
+                expect(Object.keys(doc)).toContain('salesRank');
+                expect(Object.keys(doc)).toContain('buyBoxMetrics');
               });
           },
           error: e => {
-            console.log("error out 3");
+            console.log('error out 3');
             done(e);
           },
           complete: () => {
-            console.log("complete 3");
+            console.log('complete 3');
             done();
           }
         });
@@ -127,13 +127,13 @@ describe("BuyBoxRepo", () => {
         const ctx = {
           dbLogger
         };
-        repo.syncProduct("B001BOJCOY", ctx);
+        repo.syncProduct('B001BOJCOY', ctx);
       },
       10 * 1000
     );
 
     it(
-      "should fill queue and process all",
+      'should fill queue and process all',
       done => {
         /** set up the subscription first because share does not store values like shareReplay */
         repo.processing$
@@ -145,8 +145,8 @@ describe("BuyBoxRepo", () => {
                     asin1: v.asin
                   })
                   .then(doc => {
-                    expect(Object.keys(doc)).toContain("salesRank");
-                    expect(Object.keys(doc)).toContain("buyBoxMetrics");
+                    expect(Object.keys(doc)).toContain('salesRank');
+                    expect(Object.keys(doc)).toContain('buyBoxMetrics');
                   })
               );
             }),
@@ -154,15 +154,15 @@ describe("BuyBoxRepo", () => {
           )
           .subscribe({
             next: v => {
-              console.log("last one", v);
+              console.log('last one', v);
               done();
             },
             error: e => {
-              console.log("error out 4");
+              console.log('error out 4');
               done(e);
             },
             complete: () => {
-              console.log("complete 4");
+              console.log('complete 4');
               done();
             }
           });

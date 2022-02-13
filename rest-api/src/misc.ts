@@ -6,6 +6,10 @@ export const unixTimestamp = (date: Date) => {
   return Math.floor(date.getTime() / 1000);
 };
 
+export const daysToMs = (days: number) => {
+  return 1000 * 60 * 60 * 24 * days;
+};
+
 export const difference = <T>(setA: Set<T>, setB: Set<T>) => {
   const _difference = new Set(setA);
   for (const elem of setB) {

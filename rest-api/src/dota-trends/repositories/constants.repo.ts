@@ -1,9 +1,9 @@
-import { OpenDotaService } from "../services/open-dota.service";
-import { Inject, Injectable } from "@nestjs/common";
-import { Db, FindOptions, WithId } from "mongodb";
-import { DATABASE_CONNECTION } from "../constants";
-import { configDotaConstants, ConstantConfig } from "../interfaces/dota-constants-sync";
-import { firstValueFrom, from, map } from "rxjs";
+import { OpenDotaService } from '../services/open-dota.service';
+import { Inject, Injectable } from '@nestjs/common';
+import { Db, FindOptions, WithId } from 'mongodb';
+import { DATABASE_CONNECTION } from '../constants';
+import { configDotaConstants, ConstantConfig } from '../interfaces/dota-constants-sync';
+import { firstValueFrom, from, map } from 'rxjs';
 
 @Injectable()
 export class ConstantsRepo {
@@ -52,17 +52,21 @@ export class ConstantsRepo {
             this.db
               .listCollections({
                 name: config.collectionName,
-                type: "collection"
+                type: 'collection'
               })
               .toArray()
-              .then(collectionSearch => {
-                if (collectionSearch.length > 0) return this.db.collection(config.collectionName).drop();
+              .then(async collectionSearch => {
+                if (collectionSearch.length > 0)
+                  await this.db
+                    .collection(config.collectionName)
+                    .drop()
+                    .catch(e => {
+                      throw new Error(`Dota Constant Collection Drop() error, ${e.toString()}`);
+                    });
+                return this.db.collection(config.collectionName).insertMany(mongoReadyData);
               })
               .catch(e => {
-                throw new Error(`Dota Constant Collection Drop() error, ${e.toString()}`);
-              })
-              .then(() => {
-                return this.db.collection(config.collectionName).insertMany(mongoReadyData);
+                throw new Error(`Dota Constant Collection mongo error, ${e.toString()}`);
               })
           );
         })
@@ -75,7 +79,7 @@ export class ConstantsRepo {
    * @param query a filter operation to be used to query the collection
    * @returns an array of mongo documents matching the query
    */
-  get<T>(collectionName: string, query: WithId<T>, findOptions?: FindOptions) {
+  get<T>(collectionName: string, query: T, findOptions?: FindOptions) {
     /** check if it is one from the config */
     const config = configDotaConstants.find(x => x.collectionName == collectionName);
     if (!config) throw new Error(`Collection name is not valid ${collectionName}`);

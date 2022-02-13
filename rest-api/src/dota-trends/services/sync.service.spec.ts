@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { SyncService } from './automate-sync.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { OpenDotaService } from "./open-dota.service";
 
-describe('SyncService', () => {
-  let service: SyncService;
+describe("OpenDotaService", () => {
+  let service: OpenDotaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SyncService],
+      providers: [OpenDotaService]
     }).compile();
 
-    service = module.get<SyncService>(SyncService);
+    service = module.get<OpenDotaService>(OpenDotaService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 });

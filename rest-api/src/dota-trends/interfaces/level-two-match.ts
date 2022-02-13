@@ -2,7 +2,7 @@ import { ObjectiveType, PurchaseLogs } from "./open-dota-match";
 
 export interface LevelTwoHero {
   /** uuid 1 */
-  match_id;
+  match_id: number;
   /** uuid 2 */
   hero_id: number;
   /** patch id */

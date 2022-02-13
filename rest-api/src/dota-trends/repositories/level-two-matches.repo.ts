@@ -1,4 +1,11 @@
 import {
+  Context,
+  ProcessTrace,
+  SuccessProcessResponse,
+  TypeProcessResponseError,
+  TypeProcessResponseSuccess
+} from './../../interfaces/process';
+import {
   Faction,
   LevelTwoObjective,
   LevelTwoPlayerMapping,
@@ -10,29 +17,39 @@ import {
   SkillBuild,
   Stamps,
   SumTypes
-} from "../interfaces/level-two-match";
-import { ContextObject } from "../interfaces/context-object";
-import { MatchesRepo, MatchPass } from "./matches.repo";
-import { Objective, Objectives, OpenDotaMatch, Player } from "../interfaces/open-dota-match";
-import { LVL_TWO_HEROES, MATCHES } from "../constants";
-import { Inject, Injectable } from "@nestjs/common";
-import { BehaviorSubject, concatAll, concatMap, delay, from, map, Observable, of, tap } from "rxjs";
-import { Collection } from "mongodb";
-import { FirstbloodObj, LevelTwoHero, Role } from "../interfaces/level-two-match";
+} from '../interfaces/level-two-match';
+import { MatchesRepo } from './matches.repo';
+import { Objective, Objectives, OpenDotaMatch, Player } from '../interfaces/open-dota-match';
+import { LVL_TWO_HEROES, MATCHES } from '../constants';
+import { Inject, Injectable } from '@nestjs/common';
+import { BehaviorSubject, concatAll, concatMap, delay, from, map, Observable, of, share, Subject, tap } from 'rxjs';
+import { Collection } from 'mongodb';
+import { FirstbloodObj, LevelTwoHero, Role } from '../interfaces/level-two-match';
+import { standardCatchErrorStrategy } from 'src/functions/standard-catch-error-strategy';
 
+/** going in */
+type OpenDotaMatchProcessTrace = ProcessTrace<OpenDotaMatch>;
+
+/** going out */
+type LevelTwoResponse = LevelTwoHero[];
+type ErrorResponse = OpenDotaMatch;
+export type SuccessLevelTwoResponse = TypeProcessResponseSuccess<LevelTwoResponse>;
+export type ErrorLevelTwoResponse = TypeProcessResponseError<ErrorResponse>;
+export type LevelTwoResponses = SuccessLevelTwoResponse | ErrorLevelTwoResponse;
+
+/** Transformation interfaces */
 interface PreCalPlayer extends Player {
   calculatedRole: number;
   trilane?: boolean;
 }
-
 interface PreCalData extends OpenDotaMatch {
   players: PreCalPlayer[];
 }
 
 @Injectable()
 export class LevelTwoMatchesRepo {
-  private subject = new BehaviorSubject<OpenDotaMatch>(null);
-  levelTwomatch$: Observable<OpenDotaMatch> = this.subject.asObservable();
+  private subject = new Subject<LevelTwoResponses>();
+  public processed$ = this.subject.asObservable().pipe(share());
 
   /** add another collection to a level two match coll  */
   constructor(
@@ -42,104 +59,119 @@ export class LevelTwoMatchesRepo {
     private readonly matchCollection: Collection<OpenDotaMatch>,
     private readonly matchesRepo: MatchesRepo
   ) {
-    this.matchesRepo.match$
+    this.matchesRepo.processed$
       .pipe(
         concatMap(val => {
-          return this.calculate(val).pipe(delay(75));
+          if (val.status == 'success') {
+            return this.calculate(val.payload, val.ctx).pipe(delay(75));
+          } else {
+            return of();
+          }
         })
       )
       .subscribe();
   }
 
-  calculate(val: MatchPass) {
-    let { data, ...ctx } = val;
-    ctx.logger.log("info", "calculate matches");
-    const calculatedFields = {
-      radiant_team: this.teamComp(data, "radiant"),
-      dire_team: this.teamComp(data, "dire")
-    };
-    ctx.logger.log("info", "calculate complete");
-
-    const _players = this.calculateRoles(data.players);
-    const _data: PreCalData = {
-      ...data,
-      players: _players
-    };
-    const firstblood = this.firstblood(_data);
-    const buildings = this.buildings(_data);
-    const allStamps = this.stamps(_data);
-    const objectives = this.objectives(_data);
-    const killed_roles = this.killedRolesFactory(_players);
-
-    return from(
-      this.levelTwoMatchCollection.bulkWrite(
-        _players.map((player, i) => {
-          return {
-            updateOne: {
-              filter: { match_id: _data.match_id, hero_id: player.hero_id },
-              update: {
-                $set: {
-                  syncDate: new Date(),
-                  voted_bans: _data.draft_timings.map(x => x.hero_id),
-                  teamfight_participation: player.teamfight_participation,
-                  lane_efficiency: player.lane_efficiency,
-                  benchmarks: player.benchmarks,
-                  is_roaming: player.is_roaming,
-                  calculated: {
-                    team: player.isRadiant ? "radiant" : "dire",
-                    role: player.calculatedRole as Role,
-                    win: player.win ? true : false,
-                    pick_order: _data.picks_bans.find(x => x.hero_id == player.hero_id).order,
-                    firstblood,
-                    buildings,
-                    /** check purchase_log first, then item_usage */
-                    starting_items: {
-                      start: player.purchase_log.filter(x => x.time < 0).filter(x => player.item_usage[x.key] == 1),
-                      first30: player.purchase_log
-                        .filter(x => x.time >= 0 && x.time <= 30)
-                        .filter(x => player.item_usage[x.key] == 1)
-                    },
-                    /** array find the correct stamp[] palyer_slot */
-                    stamps: allStamps[i],
-                    objectives: objectives[player.player_slot],
-                    killed_roles: killed_roles(player),
-                    items: this.items(player),
-                    skillbuild: this.skillbuild(player)
-                  }
-                },
-                $setOnInsert: {
-                  match_id: _data.match_id,
-                  hero_id: player.hero_id,
-                  patch: _data.patch,
-                  cluster: _data.cluster,
-                  duration: _data.duration
-                }
-              },
-              upsert: true
-            }
+  public calculate(data: OpenDotaMatch, ctx: Context) {
+    return standardCatchErrorStrategy({
+      ob$: of({ data, ctx }).pipe(
+        concatMap(({ data, ctx }) => {
+          ctx.dbLogger.log('log', 'start calculate level two matches');
+          const _players: PreCalPlayer[] = this.calculateRoles(data.players);
+          const _data: PreCalData = {
+            ...data,
+            players: _players
           };
-        })
-      )
-    );
+          const firstblood = this.firstblood(_data);
+          const buildings = this.buildings(_data);
+          const allStamps = this.stamps(_data);
+          const objectives = this.objectives(_data);
+          const killed_roles = this.killedRolesFactory(_players);
 
-    // return from(
-    //   this.levelTwoMatchCollection
-    //     .updateOne(
-    //       { match_id: data.match_id, hero_id: data.he },
-    //       {
-    //         // $currentDate: { syncDate: true },
-    //         $set: { levelTwo: calculatedFields }
-    //       }
-    //     )
-    //     .then(() => {
-    //       return this.matchCollection.deleteOne({ match_id: data.match_id });
-    //     })
-    //     .finally(() => {
-    //       ctx.logger.log("info", "mongo update match with calculated");
-    //     })
-    // );
+          const levelTwoPlayers: LevelTwoHero[] = _players.map((player, i) => {
+            return {
+              match_id: _data.match_id,
+              hero_id: player.hero_id,
+              patch: _data.patch,
+              cluster: _data.cluster,
+              duration: _data.duration,
+
+              syncDate: new Date(),
+              voted_bans: _data.draft_timings.map(x => x.hero_id),
+              teamfight_participation: player.teamfight_participation,
+              lane_efficiency: player.lane_efficiency,
+              benchmarks: player.benchmarks,
+              is_roaming: player.is_roaming,
+              calculated: {
+                team: player.isRadiant ? 'radiant' : 'dire',
+                role: player.calculatedRole as Role,
+                win: player.win ? true : false,
+                pick_order: _data.picks_bans.find(x => x.hero_id == player.hero_id).order,
+                firstblood,
+                buildings,
+                /** check purchase_log first, then item_usage */
+                starting_items: {
+                  start: player.purchase_log.filter(x => x.time < 0).filter(x => player.item_usage[x.key] == 1),
+                  first30: player.purchase_log
+                    .filter(x => x.time >= 0 && x.time <= 30)
+                    .filter(x => player.item_usage[x.key] == 1)
+                },
+                /** array find the correct stamp[] palyer_slot */
+                stamps: allStamps[i],
+                objectives: objectives[player.player_slot],
+                killed_roles: killed_roles(player),
+                items: this.items(player),
+                skillbuild: this.skillbuild(player)
+              }
+            };
+          });
+
+          return from(
+            this.levelTwoMatchCollection
+              .bulkWrite(
+                levelTwoPlayers.map(player => {
+                  return {
+                    updateOne: {
+                      filter: { match_id: _data.match_id, hero_id: player.hero_id },
+                      update: {
+                        $set: {
+                          syncDate: new Date(),
+                          voted_bans: _data.draft_timings.map(x => x.hero_id),
+                          teamfight_participation: player.teamfight_participation,
+                          lane_efficiency: player.lane_efficiency,
+                          benchmarks: player.benchmarks,
+                          is_roaming: player.is_roaming,
+                          calculated: player.calculated
+                        },
+                        $setOnInsert: {
+                          match_id: _data.match_id,
+                          hero_id: player.hero_id,
+                          patch: _data.patch,
+                          cluster: _data.cluster,
+                          duration: _data.duration
+                        }
+                      },
+                      upsert: true
+                    }
+                  };
+                })
+              )
+              .then(res => {
+                ctx.dbLogger.log('log', 'mongo 2 upsert/update match/livegame complete', { res });
+                return SuccessProcessResponse(levelTwoPlayers, ctx);
+              })
+          );
+        })
+      ),
+      pt: { ctx, payload: data }
+    }).pipe(
+      tap(res => {
+        this.subject.next(res);
+      })
+    );
   }
-  killedRolesFactory(_players: PreCalPlayer[]) {
+
+  private killedRolesFactory(_players: PreCalPlayer[]) {
     /** closure this data to be saved and used to perform hero id look ups */
     const players = _players;
     /** TODO inject the constant service to get hero id and other fields */
@@ -152,7 +184,7 @@ export class LevelTwoMatchesRepo {
       });
     };
   }
-  objectives(data: PreCalData) {
+  private objectives(data: PreCalData) {
     const objectives: { [slot: number]: LevelTwoObjective[] } = {};
     for (const o of data.objectives) {
       if (!objectives[o.player_slot]) objectives[o.player_slot] = [];
@@ -166,7 +198,7 @@ export class LevelTwoMatchesRepo {
     }
     return objectives;
   }
-  skillbuild(player: PreCalPlayer) {
+  private skillbuild(player: PreCalPlayer) {
     let level = 0;
     const lvl_t = player.xp_t.map(x => this.toLevel(x));
     const skillbuild: SkillBuild[] = [];
@@ -184,7 +216,7 @@ export class LevelTwoMatchesRepo {
     }
     return skillbuild;
   }
-  items(player: PreCalPlayer) {
+  private items(player: PreCalPlayer) {
     return player.purchase_log
       .filter(x => player.item_usage[x.key] == 1)
       .map(x => {
@@ -198,18 +230,18 @@ export class LevelTwoMatchesRepo {
         };
       });
   }
-  calculateRoles(players: Player[]): PreCalPlayer[] {
+  private calculateRoles(players: Player[]): PreCalPlayer[] {
     const _players = players as PreCalPlayer[];
     /** sort gold at 8 minutes in order to easily handle default situations */
     _players.sort((a, b) => (a.gold_t[7] > b.gold_t[7] ? 1 : -1));
     for (const teamSwitch of [true, false]) {
       const team = _players.filter(x => x.isRadiant == teamSwitch);
       const deduplicate = {
-        "1": 0,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 0
+        '1': 0,
+        '2': 0,
+        '3': 0,
+        '4': 0,
+        '5': 0
       };
       const safetrilane = team.filter(x => x.lane_role == 1).length == 3 ? true : false;
       const offtrilane = team.filter(x => x.lane_role == 3).length == 3 ? true : false;
@@ -219,22 +251,22 @@ export class LevelTwoMatchesRepo {
           switch (p.lane_role) {
             case 1:
               if (safetrilane) _p.trilane = true;
-              if (!deduplicate["1"]) {
+              if (!deduplicate['1']) {
                 _p.calculatedRole = 1;
-                deduplicate["1"] = 1;
+                deduplicate['1'] = 1;
                 break;
               }
             case 2:
-              if (!deduplicate["2"]) {
+              if (!deduplicate['2']) {
                 _p.calculatedRole = 2;
-                deduplicate["2"] = 1;
+                deduplicate['2'] = 1;
                 break;
               }
             case 3:
               if (offtrilane) _p.trilane = true;
-              if (!deduplicate["3"]) {
+              if (!deduplicate['3']) {
                 _p.calculatedRole = 3;
-                deduplicate["3"] = 1;
+                deduplicate['3'] = 1;
                 break;
               }
             /** sometimes the lane_role doesnt work out pos1 and 2 could flip  */
@@ -250,7 +282,7 @@ export class LevelTwoMatchesRepo {
           switch (p.lane_role) {
             case 1:
               if (safetrilane) {
-                if (!deduplicate["4"]) _p.calculatedRole = 4;
+                if (!deduplicate['4']) _p.calculatedRole = 4;
                 _p.trilane = true;
               } else {
                 p.calculatedRole = 5;
@@ -258,7 +290,7 @@ export class LevelTwoMatchesRepo {
               break;
             case 3:
               if (offtrilane) _p.trilane = true;
-              if (!deduplicate["4"]) {
+              if (!deduplicate['4']) {
                 _p.calculatedRole = 4;
                 break;
               }
@@ -406,15 +438,15 @@ export class LevelTwoMatchesRepo {
        * aggregate player data by current minute key
        * loop thru each aggregation type
        * */
-      const sumTypes = ["ratio", "core_ratio", "support_ratio"] as SumTypes[];
+      const sumTypes = ['ratio', 'core_ratio', 'support_ratio'] as SumTypes[];
       for (const ratio of sumTypes) {
         let playerStamps_map: MinuteSnapShot[];
         /** apply a filter for each ratio type */
-        if (ratio == "ratio") {
+        if (ratio == 'ratio') {
           playerStamps_map = playerStamps.map(x => x[min]);
-        } else if (ratio == "core_ratio") {
+        } else if (ratio == 'core_ratio') {
           playerStamps_map = playerStamps.filter((x, i) => data.players[i].calculatedRole >= 3).map(x => x[min]);
-        } else if (ratio == "support_ratio") {
+        } else if (ratio == 'support_ratio') {
           playerStamps_map = playerStamps.filter((x, i) => data.players[i].calculatedRole <= 4).map(x => x[min]);
         }
         /** reducing creates a single object with all workable fields summed */
@@ -425,7 +457,7 @@ export class LevelTwoMatchesRepo {
            * 1 do the simple & diff leveltwo player mappings
            * 2 do the simple & diff leveltwo player teamfight mappings
            * */
-          for (const snapType of ["simple", "diff"] as ("simple" | "diff")[]) {
+          for (const snapType of ['simple', 'diff'] as ('simple' | 'diff')[]) {
             player[min][snapType][ratio] = {
               networth: player[min][snapType][ratio].networth / playerStamps_reduced[snapType][ratio].networth,
               xp: player[min][snapType][ratio].xp / playerStamps_reduced[snapType][ratio].xp,
@@ -494,7 +526,7 @@ export class LevelTwoMatchesRepo {
     return playerStamps;
   }
 
-  sumTypeReducer(a: MinuteSnapShot, b: MinuteSnapShot) {
+  private sumTypeReducer(a: MinuteSnapShot, b: MinuteSnapShot) {
     a.simple.sum.networth += b.simple.sum.networth;
     a.simple.sum.xp += b.simple.sum.level;
     a.simple.sum.kills += b.simple.sum.kills;
@@ -532,7 +564,7 @@ export class LevelTwoMatchesRepo {
     return a;
   }
 
-  diff_t(t_array: number[], min: number, prev_min: number): number {
+  private diff_t(t_array: number[], min: number, prev_min: number): number {
     return t_array[min] - t_array[prev_min];
   }
   /**
@@ -551,10 +583,10 @@ export class LevelTwoMatchesRepo {
     return min_i == player.times.length - 1 ? min_i : min_i + 1;
   }
 
-  wardRatio(x: number): number {
+  private wardRatio(x: number): number {
     return Number((x / 190).toFixed(2));
   }
-  toLevel(totalxp: number): number {
+  private toLevel(totalxp: number): number {
     const xpTable = [
       0, 230, 600, 1080, 1660, 2260, 2980, 3730, 4620, 5550, 6520, 7530, 8580, 9805, 11055, 12330, 13630, 14955, 16455,
       18045, 19645, 21495, 23595, 25945, 28545, 32045, 36545, 42045, 48545, 56045
@@ -564,7 +596,7 @@ export class LevelTwoMatchesRepo {
   }
 
   private buildings(data: PreCalData) {
-    const buildings_arr = data.objectives.filter(x => x.type == "building_kill");
+    const buildings_arr = data.objectives.filter(x => x.type == 'building_kill');
     const buildings_mapping = {};
     for (const b of buildings_arr) {
       const building_obj = this.buildingParse(b);
@@ -578,8 +610,8 @@ export class LevelTwoMatchesRepo {
         hero = hero_obj.hero_id;
         role = hero_obj.calculatedRole as Role;
         deny =
-          (building_obj.team == "radiant" && hero_obj.player_slot <= 4) ||
-          (building_obj.team == "dire" && hero_obj.player_slot >= 5)
+          (building_obj.team == 'radiant' && hero_obj.player_slot <= 4) ||
+          (building_obj.team == 'dire' && hero_obj.player_slot >= 5)
             ? true
             : false;
       }
@@ -599,17 +631,17 @@ export class LevelTwoMatchesRepo {
 
   private buildingParse(building: Objective) {
     const building_name = building.key as string;
-    const team: Faction = building_name.includes("goodguys") ? "radiant" : "dire";
+    const team: Faction = building_name.includes('goodguys') ? 'radiant' : 'dire';
     let lane;
-    if (building_name.includes("top")) lane = "top";
-    if (building_name.includes("bot")) lane = "mid";
-    if (building_name.includes("bot")) lane = "bot";
-    if (!lane) lane = "fort";
+    if (building_name.includes('top')) lane = 'top';
+    if (building_name.includes('bot')) lane = 'mid';
+    if (building_name.includes('bot')) lane = 'bot';
+    if (!lane) lane = 'fort';
     let depth;
-    if (building_name.includes("tower1")) depth = 1;
-    if (building_name.includes("tower2")) depth = 2;
-    if (building_name.includes("tower3")) depth = 3;
-    if (building_name.includes("tower4")) depth = 4;
+    if (building_name.includes('tower1')) depth = 1;
+    if (building_name.includes('tower2')) depth = 2;
+    if (building_name.includes('tower3')) depth = 3;
+    if (building_name.includes('tower4')) depth = 4;
 
     return {
       name: `${team}-${lane}-${depth}`,
@@ -631,7 +663,7 @@ export class LevelTwoMatchesRepo {
   }
 
   private firstblood(data: PreCalData): FirstbloodObj {
-    const fb = data.objectives.find(x => x.type == "CHAT_MESSAGE_FIRSTBLOOD");
+    const fb = data.objectives.find(x => x.type == 'CHAT_MESSAGE_FIRSTBLOOD');
     const fb_killer = data.players.find(x => x.player_slot == fb.player_slot);
     const fb_died = data.players.find(x => x.player_slot == this.convertToPlayerSlot(fb.key as number));
     return {
@@ -643,10 +675,10 @@ export class LevelTwoMatchesRepo {
     };
   }
 
-  private teamComp(match: OpenDotaMatch, team: "radiant" | "dire") {
+  private teamComp(match: OpenDotaMatch, team: 'radiant' | 'dire') {
     return match.players
       .filter(player => {
-        if (team == "radiant") return player.player_slot <= 4;
+        if (team == 'radiant') return player.player_slot <= 4;
         else return player.player_slot > 4;
       })
       .map(player => player.hero_id);

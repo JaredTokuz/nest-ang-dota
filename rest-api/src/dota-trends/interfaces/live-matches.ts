@@ -1,4 +1,4 @@
-import { WithId } from "mongodb";
+import { WithId } from 'mongodb';
 export type OpenDotaLiveResponse = OpenDotaLiveGame[];
 
 export interface LiveGame {
@@ -20,4 +20,6 @@ export interface LiveGameDocument extends WithId<LiveGame> {
   /** set to null at first, then set to true after the game is parsed
    * and added to the matches collection */
   game_finished: null | boolean;
+
+  syncDate: Date;
 }
