@@ -8,7 +8,7 @@ import { generalPaginatedSync } from './../../functions/general-paginated-sync';
 import { makeContext } from './../../functions/context';
 import { ProcessTrace, SuccessProcessResponse } from './../../interfaces/process';
 import { LevelTwoHero } from '../interfaces/level-two-match';
-import { LiveMatchRepo } from '../repositories/live-match.repo';
+import { LiveMatchRepo } from '../data-stores/live-match.store';
 import { daysToMs, unixTimestamp } from '../../misc';
 
 import { Cron } from '@nestjs/schedule';
@@ -18,8 +18,8 @@ import { LiveGameDocument } from '../interfaces/live-matches';
 import { OpenDotaMatch } from '../interfaces/open-dota-match';
 
 import { from } from 'rxjs';
-import { ConstantsRepo } from '../repositories/constants.repo';
-import { MatchesRepo } from '../repositories/matches.repo';
+import { ConstantsRepo } from '../data-stores/constants.store';
+import { MatchesRepo } from '../data-stores/matches.store';
 
 @Controller('sync')
 @UseGuards(AuthenticationGuard)

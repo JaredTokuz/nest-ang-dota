@@ -1,8 +1,5 @@
-export const DATABASE_CONNECTION = 'DATABASE_CONNECTION';
 export const OPENDOTA_BASE_URL = 'https://api.opendota.com/api';
-export const LIVE_MATCHES = 'liveMatches';
-export const MATCHES = 'matches';
-export const LVL_TWO_HEROES = 'level-two-heroes';
+
 export const DOTA_DBLOGGER = 'dota-dblogger';
 
 /** some constants are not retriavable from the api...

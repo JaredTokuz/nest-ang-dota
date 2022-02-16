@@ -1,9 +1,9 @@
 import { OpenDotaService } from '../services/open-dota.service';
 import { Inject, Injectable } from '@nestjs/common';
 import { Db, FindOptions, WithId } from 'mongodb';
-import { DATABASE_CONNECTION } from '../constants';
 import { configDotaConstants, ConstantConfig } from '../interfaces/dota-constants-sync';
 import { firstValueFrom, from, map } from 'rxjs';
+import { DATABASE_CONNECTION } from '../database/database.provider';
 
 @Injectable()
 export class ConstantsRepo {
@@ -14,9 +14,9 @@ export class ConstantsRepo {
   ) {}
 
   /**
-   * gets the live match data, parses the important bits
+   * gets the constants data, parses the important bits
    * and upserts to the database
-   * @returns bulkWriteResult from mongo db
+   * @returns {void} from mongo db
    */
   async sync(resource?: string) {
     try {
@@ -48,25 +48,15 @@ export class ConstantsRepo {
           /** format based on constant */
           const mongoReadyData = config.format(data);
 
-          from(
+          return from(
             this.db
-              .listCollections({
-                name: config.collectionName,
-                type: 'collection'
-              })
-              .toArray()
-              .then(async collectionSearch => {
-                if (collectionSearch.length > 0)
-                  await this.db
-                    .collection(config.collectionName)
-                    .drop()
-                    .catch(e => {
-                      throw new Error(`Dota Constant Collection Drop() error, ${e.toString()}`);
-                    });
+              .collection(config.collectionName)
+              .deleteMany({})
+              .then(() => {
                 return this.db.collection(config.collectionName).insertMany(mongoReadyData);
               })
               .catch(e => {
-                throw new Error(`Dota Constant Collection mongo error, ${e.toString()}`);
+                throw new Error(`Dota Constant Collection config sync error, ${e.toString()}`);
               })
           );
         })
