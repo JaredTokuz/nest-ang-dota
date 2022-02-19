@@ -1,40 +1,37 @@
 import { Controller, Inject, Param, Post, Query, UseGuards } from '@nestjs/common';
-
 import { AdminGuard } from '../../guards/admin.guard';
 import { AuthenticationGuard } from '../../guards/authentication.guard';
-
 import { DbLoggerMainFields } from './../../interfaces/db-logger';
 import { generalPaginatedSync } from './../../functions/general-paginated-sync';
 import { makeContext } from './../../functions/context';
 import { ProcessTrace, SuccessProcessResponse } from './../../interfaces/process';
 import { LevelTwoHero } from '../interfaces/level-two-match';
-import { LiveMatchRepo } from '../data-stores/live-match.store';
 import { daysToMs, unixTimestamp } from '../../misc';
-
 import { Cron } from '@nestjs/schedule';
-import { DATABASE_CONNECTION, DOTA_DBLOGGER, LIVE_MATCHES, LVL_TWO_HEROES, MATCHES } from '../constants';
 import { Db, WithId } from 'mongodb';
 import { LiveGameDocument } from '../interfaces/live-matches';
 import { OpenDotaMatch } from '../interfaces/open-dota-match';
-
 import { from } from 'rxjs';
-import { ConstantsRepo } from '../data-stores/constants.store';
-import { MatchesRepo } from '../data-stores/matches.store';
+import { MatchesStore } from '../data-stores/matches.store';
+import { DATABASE_CONNECTION, LIVE_MATCHES, LVL_TWO_HEROES, MATCHES } from '../database/database.provider';
+import { LiveMatchStore } from '../data-stores/live-match.store';
+import { ConstantsStore } from '../data-stores/constants.store';
+import { DOTA_DBLOGGER } from '../constants';
 
 @Controller('sync')
 @UseGuards(AuthenticationGuard)
 export class SyncController {
   constructor(
-    private readonly matchesRepo: MatchesRepo,
+    private readonly matchesStore: MatchesStore,
     @Inject(DATABASE_CONNECTION)
     private db: Db,
-    private liveRepo: LiveMatchRepo,
-    private constantsRepo: ConstantsRepo
+    private liveStore: LiveMatchStore,
+    private constantsStore: ConstantsStore
   ) {}
 
   @Cron('0 0 */2 ? * *')
   async liveMatchSync() {
-    this.liveRepo.sync({ ctx: this.makeCtx(), payload: {} }).subscribe();
+    this.liveStore.sync({ ctx: this.makeCtx(), payload: {} }).subscribe();
   }
 
   @Cron('0 0 * */6 * sun')
@@ -152,27 +149,27 @@ export class SyncController {
   @Post('constants')
   @UseGuards(AdminGuard)
   async constantSync(@Query('constant') constant?: string) {
-    return this.constantsRepo.sync(constant);
+    return this.constantsStore.sync(constant);
   }
 
   @Post('live')
   @UseGuards(AdminGuard)
   async liveMatchesSync() {
-    return this.liveRepo.sync({ ctx: this.makeCtx(), payload: {} }).subscribe();
+    return this.liveStore.sync({ ctx: this.makeCtx(), payload: {} }).subscribe();
   }
 
   /** this will resync all live matches that are not finished and conditional delay */
   @Post('live/retry')
   @UseGuards(AdminGuard)
   async liveMatchesRetry() {
-    return this.liveRepo.emitUnfinished({ ctx: this.makeCtx(), payload: {} }).subscribe();
+    return this.liveStore.emitUnfinished({ ctx: this.makeCtx(), payload: {} }).subscribe();
   }
 
   /** only sync if it is a live match */
   @Post('match/:id')
   @UseGuards(AdminGuard)
   async matchesParseLiveMatchesOnly(@Param('id') id: string) {
-    return this.matchesRepo.liveMatchOnlyParse$(id, this.makeCtx()).subscribe();
+    return this.matchesStore.liveMatchOnlyParse$(id, this.makeCtx()).subscribe();
   }
 
   private makeCtx() {

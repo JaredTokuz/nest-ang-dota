@@ -1,4 +1,5 @@
 import { WithId } from 'mongodb';
+import { ErrorPayload } from '../../interfaces/process';
 export type OpenDotaLiveResponse = OpenDotaLiveGame[];
 
 export interface LiveGame {
@@ -16,10 +17,15 @@ export interface OpenDotaLiveGame extends LiveGame {
   [key: string]: unknown;
 }
 
-export interface LiveGameDocument extends WithId<LiveGame> {
+export interface LiveGameDocument extends LiveGame {
   /** set to null at first, then set to true after the game is parsed
    * and added to the matches collection */
   game_finished: null | boolean;
 
   syncDate: Date;
 }
+
+/** loose guard */
+export const isLiveGameArray = (payload: LiveGame[] | ErrorPayload<any>): payload is LiveGame[] => {
+  return Array.isArray(payload) && 'match_id' in payload[0];
+};

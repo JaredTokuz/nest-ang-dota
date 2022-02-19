@@ -1,10 +1,10 @@
-import { Filter, FindOptions } from "mongodb";
-import { Body, Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
-import { AuthenticationGuard } from "../../guards/authentication.guard";
-import { AdminGuard } from "../../guards/admin.guard";
-import { ConstantsRepo } from "../repositories/constants.repo";
+import { Filter, FindOptions } from 'mongodb';
+import { Body, Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { AuthenticationGuard } from '../../guards/authentication.guard';
+import { AdminGuard } from '../../guards/admin.guard';
+import { ConstantsRepo } from '../data-stores/constants.store';
 
-@Controller("dota-constants")
+@Controller('dota-constants')
 @UseGuards(AuthenticationGuard)
 export class DotaConstantsController {
   constructor(private constantsRepo: ConstantsRepo) {}
@@ -15,16 +15,16 @@ export class DotaConstantsController {
    * @param simple flag to send a predefined options for a query
    * @returns
    */
-  @Get("heroes")
+  @Get('heroes')
   @UseGuards(AdminGuard)
-  getHeroes(@Query("simple") simple?: boolean) {
+  getHeroes(@Query('simple') simple?: boolean) {
     const query: Filter<any> = {};
     const findOptions: FindOptions = {};
-    console.log("simple", simple);
+    console.log('simple', simple);
     if (simple) {
       findOptions.projection = heroesSimpleFields;
     }
-    return this.constantsRepo.get("heroes", query, findOptions);
+    return this.constantsRepo.get('heroes', query, findOptions);
   }
 
   /**
@@ -33,15 +33,15 @@ export class DotaConstantsController {
    * @param simple flag to send a predefined options for a query
    * @returns
    */
-  @Get("hero/:id")
+  @Get('hero/:id')
   @UseGuards(AdminGuard)
-  getHero(@Query("simple") simple?: boolean, @Param("id") id?: string) {
+  getHero(@Query('simple') simple?: boolean, @Param('id') id?: string) {
     const query: Filter<any> = { id };
     const findOptions: FindOptions = {};
     if (simple) {
       findOptions.projection = heroesSimpleFields;
     }
-    return this.constantsRepo.get("heroes", query, findOptions);
+    return this.constantsRepo.get('heroes', query, findOptions);
   }
 }
 

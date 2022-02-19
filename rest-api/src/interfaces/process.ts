@@ -49,7 +49,7 @@ export const isErrResp = <T>(res: ProcessTypes<T>): res is TypeProcessResponseEr
 };
 
 export type ErrorObj = {
-  /** manual or 3rd party error */
+  /** manual or 3rd party error manual errors should be function names msg more specific */
   err: Error;
   /** our msg string for the logg if the error was 3rd party */
   msg?: string;

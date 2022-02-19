@@ -18,6 +18,8 @@ export const difference = <T>(setA: Set<T>, setB: Set<T>) => {
   return _difference;
 };
 
+export const range = (n: any) => [...Array(n).keys()];
+
 /* For a given date, get the ISO week number
  *
  * Based on information at:

@@ -1,4 +1,4 @@
-import { ObjectiveType, PurchaseLogs } from "./open-dota-match";
+import { ObjectiveType, PurchaseLogs } from './open-dota-match';
 
 export interface LevelTwoHero {
   /** uuid 1 */
@@ -33,7 +33,7 @@ export interface LevelTwoHero {
 
 export type Role = 1 | 2 | 3 | 4 | 5;
 
-export type Faction = "radiant" | "dire";
+export type Faction = 'radiant' | 'dire';
 
 export type FirstbloodObj = {
   time: number;
@@ -83,13 +83,13 @@ export interface LevelTwoObjective {
 export type LevelTwoObjectives = LevelTwoObjective[];
 
 export type Target =
-  | "lastHitFirstblood"
-  | "diedFirstblood"
-  | "tower"
-  | "denyTower"
-  | "lastHitroshan"
-  | "roshanAegis"
-  | "lastHitCourier";
+  | 'lastHitFirstblood'
+  | 'diedFirstblood'
+  | 'tower'
+  | 'denyTower'
+  | 'lastHitroshan'
+  | 'roshanAegis'
+  | 'lastHitCourier';
 
 interface CalculatedFields {
   team: Faction;
@@ -106,7 +106,7 @@ interface CalculatedFields {
     /** team and lane and depth */
     [name: string]: {
       team: Faction;
-      lane: "safe" | "mid" | "off" | "fort";
+      lane: 'safe' | 'mid' | 'off' | 'fort';
       depth: number;
       deny: boolean;
       creep: boolean;
@@ -133,6 +133,11 @@ export type Stamps = { [minute in MinuteKeys]: MinuteSnapShot };
 
 export type MinuteKeys = number; /**1, 2, 3, 4, 6, 8, 10, 12, 15, 18, 21, 24; */
 
+export type TeamFightStruct = {
+  simple: LevelTwoPlayerTeamfightMapping;
+  diff: LevelTwoPlayerTeamfightMapping;
+};
+
 export interface MinuteSnapShot {
   simple: LevelTwoPlayerMapping;
   diff: LevelTwoPlayerMapping;
@@ -155,17 +160,14 @@ export interface MinuteSnapShot {
     rolenetWorth5: number;
     /** todo item score someday */
   };
-  teamfights: {
-    simple: LevelTwoPlayerTeamfightMapping;
-    diff: LevelTwoPlayerTeamfightMapping;
-  };
+  teamfights: TeamFightStruct;
 }
 
 export type LevelTwoPlayerMapping = {
   [sum in SumTypes]: LevelTwoPlayerStamps;
 };
 
-export type SumTypes = "sum" | "ratio" | "core_ratio" | "support_ratio";
+export type SumTypes = 'sum' | 'ratio' | 'core_ratio' | 'support_ratio';
 
 /** cumulative sums */
 export interface LevelTwoPlayerStamps {

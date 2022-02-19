@@ -9,6 +9,7 @@ export const catchErrorStandard = <T, E>(res: ProcessTrace<E>) => {
     TypeProcessResponseSuccess<T>,
     Observable<TypeProcessResponseSuccess<T> | TypeProcessResponseError<E>>
   >(({ err, msg }: ErrorObj) => {
+    console.log(err);
     const errorResp = ErrorProcessResponse({ input: res.payload, msg: msg, string: err.toString() }, res.ctx);
     return of(errorResp).pipe(
       /** not sure if this should be moved outside to a manager role */

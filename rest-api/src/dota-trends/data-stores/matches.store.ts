@@ -1,5 +1,5 @@
-import { dbCheckFirst } from './../../functions/db-check-first';
-import { standardCatchErrorStrategy } from './../../functions/standard-catch-error-strategy';
+import { dbCheckFirst } from '../../functions/db-check-first';
+import { standardCatchErrorStrategy } from '../../functions/standard-catch-error-strategy';
 import {
   Context,
   ProcessTrace,
@@ -7,17 +7,18 @@ import {
   errorObj,
   TypeProcessResponseSuccess,
   TypeProcessResponseError
-} from './../../interfaces/process';
+} from '../../interfaces/process';
 import { LiveGame } from '../interfaces/live-matches';
 import { OpenDotaService } from '../services/open-dota.service';
 import { OpenDotaMatch } from '../interfaces/open-dota-match';
-import { LIVE_MATCHES, MATCHES } from '../constants';
+
 import { Inject, Injectable } from '@nestjs/common';
 import { concat, concatMap, delay, from, Observable, of, share, Subject, tap } from 'rxjs';
 import { Collection } from 'mongodb';
-import { LiveMatchRepo } from './live-match.repo';
+import { LiveMatchStore } from './live-match.store';
 import { LiveGameDocument } from '../interfaces/live-matches';
 import { isString } from '../../functions/guards';
+import { LIVE_MATCHES, MATCHES } from '../database/database.provider';
 
 type matchId = Pick<LiveGame, 'match_id'>;
 
@@ -32,7 +33,7 @@ export type ErrorMatchResponse = TypeProcessResponseError<ErrorResponse>;
 export type MatchResponses = SuccessMatchResponse | ErrorMatchResponse;
 
 @Injectable()
-export class MatchesRepo {
+export class MatchesStore {
   private subject = new Subject<MatchResponses>();
   processed$: Observable<MatchResponses> = this.subject.asObservable().pipe(share());
 
@@ -42,7 +43,7 @@ export class MatchesRepo {
     @Inject(LIVE_MATCHES)
     private liveMatchCollection: Collection<LiveGameDocument>,
     private readonly opendota: OpenDotaService,
-    private readonly liveRepo: LiveMatchRepo
+    private readonly liveRepo: LiveMatchStore
   ) {
     this.liveRepo.processed$
       .pipe(
@@ -273,12 +274,12 @@ export class MatchesRepo {
    * @param match_id
    * @param ctx
    */
-  liveMatchOnlyParse$(match_id: string, ctx: Context, ifNotFoundThrow = true) {
+  liveMatchOnlyParse$(match_id: string, ctx: Context, throwSwitch = true) {
     return dbCheckFirst({
       collection: this.liveMatchCollection,
       query: { match_id },
       ifDbFindOb$: this.parse$(match_id, ctx),
-      ifNotFoundThrow
+      throwSwitch
     });
   }
 

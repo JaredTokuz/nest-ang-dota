@@ -6,7 +6,7 @@ import { firstValueFrom, from, map } from 'rxjs';
 import { DATABASE_CONNECTION } from '../database/database.provider';
 
 @Injectable()
-export class ConstantsRepo {
+export class ConstantsStore {
   constructor(
     @Inject(DATABASE_CONNECTION)
     private readonly db: Db,

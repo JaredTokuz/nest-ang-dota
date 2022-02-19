@@ -13,15 +13,15 @@ export type DbCheckFirstArgs<T, F> = {
   /** collection */
   collection: Collection<T>;
   /** throw based on the flag default = true, false = throw when record is found */
-  ifNotFoundThrow: boolean;
+  throwSwitch: boolean;
 };
 
-export const dbCheckFirst = <T, F>({ ifDbFindOb$, collection, query, ifNotFoundThrow }: DbCheckFirstArgs<T, F>) => {
+export const dbCheckFirst = <T, F>({ ifDbFindOb$, collection, query, throwSwitch }: DbCheckFirstArgs<T, F>) => {
   return from(collection.findOne(query)).pipe(
     concatMap(doc => {
-      if (isNull(doc) == ifNotFoundThrow) {
-        const err_msg = ifNotFoundThrow ? 'record not found' : 'record found';
-        throw errorObj({ err: new Error(err_msg) });
+      if (isNull(doc) == throwSwitch) {
+        const err_msg = throwSwitch ? 'record not found' : 'record found';
+        throw errorObj({ err: new Error('dbCheckFirstError'), msg: err_msg });
       } else {
         return ifDbFindOb$;
       }

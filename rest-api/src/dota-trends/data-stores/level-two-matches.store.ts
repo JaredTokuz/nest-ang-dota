@@ -1,10 +1,11 @@
 import {
   Context,
+  errorObj,
   ProcessTrace,
   SuccessProcessResponse,
   TypeProcessResponseError,
   TypeProcessResponseSuccess
-} from './../../interfaces/process';
+} from '../../interfaces/process';
 import {
   Faction,
   LevelTwoObjective,
@@ -16,16 +17,17 @@ import {
   MinuteSnapShot,
   SkillBuild,
   Stamps,
-  SumTypes
+  SumTypes,
+  TeamFightStruct
 } from '../interfaces/level-two-match';
-import { MatchesRepo } from './matches.repo';
+import { MatchesStore } from './matches.store';
 import { Objective, Objectives, OpenDotaMatch, Player } from '../interfaces/open-dota-match';
-import { LVL_TWO_HEROES, MATCHES } from '../constants';
 import { Inject, Injectable } from '@nestjs/common';
 import { BehaviorSubject, concatAll, concatMap, delay, from, map, Observable, of, share, Subject, tap } from 'rxjs';
 import { Collection } from 'mongodb';
 import { FirstbloodObj, LevelTwoHero, Role } from '../interfaces/level-two-match';
-import { standardCatchErrorStrategy } from 'src/functions/standard-catch-error-strategy';
+import { standardCatchErrorStrategy } from '../../functions/standard-catch-error-strategy';
+import { LVL_TWO_HEROES, MATCHES } from '../database/database.provider';
 
 /** going in */
 type OpenDotaMatchProcessTrace = ProcessTrace<OpenDotaMatch>;
@@ -47,7 +49,7 @@ interface PreCalData extends OpenDotaMatch {
 }
 
 @Injectable()
-export class LevelTwoMatchesRepo {
+export class LevelTwoMatchesStore {
   private subject = new Subject<LevelTwoResponses>();
   public processed$ = this.subject.asObservable().pipe(share());
 
@@ -55,11 +57,9 @@ export class LevelTwoMatchesRepo {
   constructor(
     @Inject(LVL_TWO_HEROES)
     private readonly levelTwoMatchCollection: Collection<LevelTwoHero>,
-    @Inject(MATCHES)
-    private readonly matchCollection: Collection<OpenDotaMatch>,
-    private readonly matchesRepo: MatchesRepo
+    private readonly matchesStore: MatchesStore
   ) {
-    this.matchesRepo.processed$
+    this.matchesStore.processed$
       .pipe(
         concatMap(val => {
           if (val.status == 'success') {
@@ -76,91 +76,97 @@ export class LevelTwoMatchesRepo {
     return standardCatchErrorStrategy({
       ob$: of({ data, ctx }).pipe(
         concatMap(({ data, ctx }) => {
-          ctx.dbLogger.log('log', 'start calculate level two matches');
-          const _players: PreCalPlayer[] = this.calculateRoles(data.players);
-          const _data: PreCalData = {
-            ...data,
-            players: _players
-          };
-          const firstblood = this.firstblood(_data);
-          const buildings = this.buildings(_data);
-          const allStamps = this.stamps(_data);
-          const objectives = this.objectives(_data);
-          const killed_roles = this.killedRolesFactory(_players);
-
-          const levelTwoPlayers: LevelTwoHero[] = _players.map((player, i) => {
-            return {
-              match_id: _data.match_id,
-              hero_id: player.hero_id,
-              patch: _data.patch,
-              cluster: _data.cluster,
-              duration: _data.duration,
-
-              syncDate: new Date(),
-              voted_bans: _data.draft_timings.map(x => x.hero_id),
-              teamfight_participation: player.teamfight_participation,
-              lane_efficiency: player.lane_efficiency,
-              benchmarks: player.benchmarks,
-              is_roaming: player.is_roaming,
-              calculated: {
-                team: player.isRadiant ? 'radiant' : 'dire',
-                role: player.calculatedRole as Role,
-                win: player.win ? true : false,
-                pick_order: _data.picks_bans.find(x => x.hero_id == player.hero_id).order,
-                firstblood,
-                buildings,
-                /** check purchase_log first, then item_usage */
-                starting_items: {
-                  start: player.purchase_log.filter(x => x.time < 0).filter(x => player.item_usage[x.key] == 1),
-                  first30: player.purchase_log
-                    .filter(x => x.time >= 0 && x.time <= 30)
-                    .filter(x => player.item_usage[x.key] == 1)
-                },
-                /** array find the correct stamp[] palyer_slot */
-                stamps: allStamps[i],
-                objectives: objectives[player.player_slot],
-                killed_roles: killed_roles(player),
-                items: this.items(player),
-                skillbuild: this.skillbuild(player)
-              }
+          try {
+            ctx.dbLogger.log('log', 'start calculate level two matches');
+            const _players: PreCalPlayer[] = this.calculateRoles(data.players);
+            const _data: PreCalData = {
+              ...data,
+              players: _players
             };
-          });
+            const firstblood = this.firstblood(_data);
+            const buildings = this.buildings(_data);
+            const allStamps = this.stamps(_data);
+            const objectives = this.objectives(_data);
+            const killed_roles = this.killedRolesFactory(_players);
 
-          return from(
-            this.levelTwoMatchCollection
-              .bulkWrite(
-                levelTwoPlayers.map(player => {
-                  return {
-                    updateOne: {
-                      filter: { match_id: _data.match_id, hero_id: player.hero_id },
-                      update: {
-                        $set: {
-                          syncDate: new Date(),
-                          voted_bans: _data.draft_timings.map(x => x.hero_id),
-                          teamfight_participation: player.teamfight_participation,
-                          lane_efficiency: player.lane_efficiency,
-                          benchmarks: player.benchmarks,
-                          is_roaming: player.is_roaming,
-                          calculated: player.calculated
+            console.log('picks and bans', _data.picks_bans);
+
+            const levelTwoPlayers: LevelTwoHero[] = _players.map((player, i) => {
+              return {
+                match_id: _data.match_id,
+                hero_id: player.hero_id,
+                patch: _data.patch,
+                cluster: _data.cluster,
+                duration: _data.duration,
+
+                syncDate: new Date(),
+                voted_bans: _data.draft_timings.map(x => x.hero_id),
+                teamfight_participation: player.teamfight_participation,
+                lane_efficiency: player.lane_efficiency,
+                benchmarks: player.benchmarks,
+                is_roaming: player.is_roaming,
+                calculated: {
+                  team: player.isRadiant ? 'radiant' : 'dire',
+                  role: player.calculatedRole as Role,
+                  win: player.win ? true : false,
+                  pick_order: _data.picks_bans.find(x => x.hero_id == player.hero_id)?.order || null,
+                  firstblood,
+                  buildings,
+                  /** check purchase_log first, then item_usage */
+                  starting_items: {
+                    start: player.purchase_log.filter(x => x.time < 0).filter(x => player.item_usage[x.key] == 1),
+                    first30: player.purchase_log
+                      .filter(x => x.time >= 0 && x.time <= 30)
+                      .filter(x => player.item_usage[x.key] == 1)
+                  },
+                  /** array find the correct stamp[] palyer_slot */
+                  stamps: allStamps[i],
+                  objectives: objectives[player.player_slot],
+                  killed_roles: killed_roles(player),
+                  items: this.items(player),
+                  skillbuild: this.skillbuild(player)
+                }
+              };
+            });
+
+            return from(
+              this.levelTwoMatchCollection
+                .bulkWrite(
+                  levelTwoPlayers.map(player => {
+                    return {
+                      updateOne: {
+                        filter: { match_id: _data.match_id, hero_id: player.hero_id },
+                        update: {
+                          $set: {
+                            syncDate: new Date(),
+                            voted_bans: _data.draft_timings.map(x => x.hero_id),
+                            teamfight_participation: player.teamfight_participation,
+                            lane_efficiency: player.lane_efficiency,
+                            benchmarks: player.benchmarks,
+                            is_roaming: player.is_roaming,
+                            calculated: player.calculated
+                          },
+                          $setOnInsert: {
+                            match_id: _data.match_id,
+                            hero_id: player.hero_id,
+                            patch: _data.patch,
+                            cluster: _data.cluster,
+                            duration: _data.duration
+                          }
                         },
-                        $setOnInsert: {
-                          match_id: _data.match_id,
-                          hero_id: player.hero_id,
-                          patch: _data.patch,
-                          cluster: _data.cluster,
-                          duration: _data.duration
-                        }
-                      },
-                      upsert: true
-                    }
-                  };
+                        upsert: true
+                      }
+                    };
+                  })
+                )
+                .then(res => {
+                  ctx.dbLogger.log('log', 'mongo 2 upsert/update match/livegame complete', { res });
+                  return SuccessProcessResponse(levelTwoPlayers, ctx);
                 })
-              )
-              .then(res => {
-                ctx.dbLogger.log('log', 'mongo 2 upsert/update match/livegame complete', { res });
-                return SuccessProcessResponse(levelTwoPlayers, ctx);
-              })
-          );
+            );
+          } catch (err) {
+            throw errorObj({ err, msg: 'catchall leveltwo matches' });
+          }
         })
       ),
       pt: { ctx, payload: data }
@@ -232,10 +238,12 @@ export class LevelTwoMatchesRepo {
   }
   private calculateRoles(players: Player[]): PreCalPlayer[] {
     const _players = players as PreCalPlayer[];
+
     /** sort gold at 8 minutes in order to easily handle default situations */
     _players.sort((a, b) => (a.gold_t[7] > b.gold_t[7] ? 1 : -1));
     for (const teamSwitch of [true, false]) {
       const team = _players.filter(x => x.isRadiant == teamSwitch);
+
       const deduplicate = {
         '1': 0,
         '2': 0,
@@ -245,9 +253,10 @@ export class LevelTwoMatchesRepo {
       };
       const safetrilane = team.filter(x => x.lane_role == 1).length == 3 ? true : false;
       const offtrilane = team.filter(x => x.lane_role == 3).length == 3 ? true : false;
+
       for (const [i, p] of team.entries()) {
         const _p = _players.find(x => x.player_slot == p.player_slot);
-        if (i >= 3) {
+        if (i >= 2) {
           switch (p.lane_role) {
             case 1:
               if (safetrilane) _p.trilane = true;
@@ -306,6 +315,7 @@ export class LevelTwoMatchesRepo {
         }
       }
     }
+
     return _players;
   }
 
@@ -326,7 +336,9 @@ export class LevelTwoMatchesRepo {
       };
       /** calculate each individual player data */
       for (const [i, player] of data.players.entries()) {
-        playerStamps[i][min] = {} as MinuteSnapShot;
+        playerStamps[i][min] = {
+          teamfights: {}
+        } as MinuteSnapShot;
         playerStamps[i][min].simple = {} as LevelTwoPlayerMapping;
         playerStamps[i][min].simple.sum = {
           networth: player.gold_t[min],
@@ -375,12 +387,12 @@ export class LevelTwoMatchesRepo {
 
         playerStamps[i][min].teamfights.simple = {} as LevelTwoPlayerTeamfightMapping;
         playerStamps[i][min].teamfights.simple.sum = {
-          networth: _teamfights.simple.map(x => x.players[i].gold_delta).reduce(reducer),
-          xp: _teamfights.simple.map(x => x.players[i].xp_delta).reduce(reducer),
-          damage: _teamfights.simple.map(x => x.players[i].damage).reduce(reducer),
-          healing: _teamfights.simple.map(x => x.players[i].healing).reduce(reducer),
-          buybacks: _teamfights.simple.map(x => x.players[i].buybacks).reduce(reducer),
-          deaths: _teamfights.simple.map(x => x.players[i].deaths).reduce(reducer),
+          networth: _teamfights.simple.map(x => x.players[i].gold_delta).reduce(reducer, 0),
+          xp: _teamfights.simple.map(x => x.players[i].xp_delta).reduce(reducer, 0),
+          damage: _teamfights.simple.map(x => x.players[i].damage).reduce(reducer, 0),
+          healing: _teamfights.simple.map(x => x.players[i].healing).reduce(reducer, 0),
+          buybacks: _teamfights.simple.map(x => x.players[i].buybacks).reduce(reducer, 0),
+          deaths: _teamfights.simple.map(x => x.players[i].deaths).reduce(reducer, 0),
           ability_uses: _teamfights.simple
             .map(x => x.players[i].ability_uses)
             .reduce((a, b) => {
@@ -390,7 +402,7 @@ export class LevelTwoMatchesRepo {
                 ability_mapping[abilityName] = undefinedToZero(a[abilityName]) + undefinedToZero(b[abilityName]);
               }
               return ability_mapping;
-            }),
+            }, 0),
           item_uses: _teamfights.simple
             .map(x => x.players[i].item_uses)
             .reduce((a, b) => {
@@ -400,17 +412,17 @@ export class LevelTwoMatchesRepo {
                 item_mapping[itemName] = undefinedToZero(a[itemName]) + undefinedToZero(b[itemName]);
               }
               return item_mapping;
-            }),
-          killed: _teamfights.simple.map(x => Object.keys(x.players[i].killed).length).reduce(reducer)
+            }, 0),
+          killed: _teamfights.simple.map(x => Object.keys(x.players[i].killed).length).reduce(reducer, 0)
         };
         playerStamps[i][min].teamfights.diff = {} as LevelTwoPlayerTeamfightMapping;
         playerStamps[i][min].teamfights.diff.sum = {
-          networth: _teamfights.diff.map(x => x.players[i].gold_delta).reduce(reducer),
-          xp: _teamfights.diff.map(x => x.players[i].xp_delta).reduce(reducer),
-          damage: _teamfights.diff.map(x => x.players[i].damage).reduce(reducer),
-          healing: _teamfights.diff.map(x => x.players[i].healing).reduce(reducer),
-          buybacks: _teamfights.diff.map(x => x.players[i].buybacks).reduce(reducer),
-          deaths: _teamfights.diff.map(x => x.players[i].deaths).reduce(reducer),
+          networth: _teamfights.diff.map(x => x.players[i].gold_delta).reduce(reducer, 0),
+          xp: _teamfights.diff.map(x => x.players[i].xp_delta).reduce(reducer, 0),
+          damage: _teamfights.diff.map(x => x.players[i].damage).reduce(reducer, 0),
+          healing: _teamfights.diff.map(x => x.players[i].healing).reduce(reducer, 0),
+          buybacks: _teamfights.diff.map(x => x.players[i].buybacks).reduce(reducer, 0),
+          deaths: _teamfights.diff.map(x => x.players[i].deaths).reduce(reducer, 0),
           ability_uses: _teamfights.diff
             .map(x => x.players[i].ability_uses)
             .reduce((a, b) => {
@@ -420,7 +432,7 @@ export class LevelTwoMatchesRepo {
                 ability_mapping[abilityName] = undefinedToZero(a[abilityName]) + undefinedToZero(b[abilityName]);
               }
               return ability_mapping;
-            }),
+            }, 0),
           item_uses: _teamfights.diff
             .map(x => x.players[i].item_uses)
             .reduce((a, b) => {
@@ -430,8 +442,8 @@ export class LevelTwoMatchesRepo {
                 item_mapping[itemName] = undefinedToZero(a[itemName]) + undefinedToZero(b[itemName]);
               }
               return item_mapping;
-            }),
-          killed: _teamfights.diff.map(x => Object.keys(x.players[i].killed).length).reduce(reducer)
+            }, 0),
+          killed: _teamfights.diff.map(x => Object.keys(x.players[i].killed).length).reduce(reducer, 0)
         };
       }
       /**
@@ -459,35 +471,29 @@ export class LevelTwoMatchesRepo {
            * */
           for (const snapType of ['simple', 'diff'] as ('simple' | 'diff')[]) {
             player[min][snapType][ratio] = {
-              networth: player[min][snapType][ratio].networth / playerStamps_reduced[snapType][ratio].networth,
-              xp: player[min][snapType][ratio].xp / playerStamps_reduced[snapType][ratio].xp,
-              level: player[min][snapType][ratio].level / playerStamps_reduced[snapType][ratio].level,
-              kills: player[min][snapType][ratio].kills / playerStamps_reduced[snapType][ratio].kills,
-              lh: player[min][snapType][ratio].lh / playerStamps_reduced[snapType][ratio].lh,
-              denies: player[min][snapType][ratio].denies / playerStamps_reduced[snapType][ratio].denies,
-              obs: player[min][snapType][ratio].obs / playerStamps_reduced[snapType][ratio].obs,
-              sents: player[min][snapType][ratio].sents / playerStamps_reduced[snapType][ratio].sents,
-              buybacks: player[min][snapType][ratio].buybacks / playerStamps_reduced[snapType][ratio].buybacks
+              networth: player[min][snapType].sum.networth / playerStamps_reduced[snapType].sum.networth,
+              xp: player[min][snapType].sum.xp / playerStamps_reduced[snapType].sum.xp,
+              level: player[min][snapType].sum.level / playerStamps_reduced[snapType].sum.level,
+              kills: player[min][snapType].sum.kills / playerStamps_reduced[snapType].sum.kills,
+              lh: player[min][snapType].sum.lh / playerStamps_reduced[snapType].sum.lh,
+              denies: player[min][snapType].sum.denies / playerStamps_reduced[snapType].sum.denies,
+              obs: player[min][snapType].sum.obs / playerStamps_reduced[snapType].sum.obs,
+              sents: player[min][snapType].sum.sents / playerStamps_reduced[snapType].sum.sents,
+              buybacks: player[min][snapType].sum.buybacks / playerStamps_reduced[snapType].sum.buybacks
             };
             player[min].teamfights[snapType][ratio] = {
               networth:
-                player[min].teamfights[snapType][ratio].networth /
-                playerStamps_reduced.teamfights[snapType][ratio].networth,
-              xp: player[min].teamfights[snapType][ratio].xp / playerStamps_reduced.teamfights[snapType][ratio].xp,
+                player[min].teamfights[snapType].sum.networth / playerStamps_reduced.teamfights[snapType].sum.networth,
+              xp: player[min].teamfights[snapType].sum.xp / playerStamps_reduced.teamfights[snapType].sum.xp,
               damage:
-                player[min].teamfights[snapType][ratio].damage /
-                playerStamps_reduced.teamfights[snapType][ratio].damage,
+                player[min].teamfights[snapType].sum.damage / playerStamps_reduced.teamfights[snapType].sum.damage,
               healing:
-                player[min].teamfights[snapType][ratio].healing /
-                playerStamps_reduced.teamfights[snapType][ratio].healing,
+                player[min].teamfights[snapType].sum.healing / playerStamps_reduced.teamfights[snapType].sum.healing,
               deaths:
-                player[min].teamfights[snapType][ratio].deaths /
-                playerStamps_reduced.teamfights[snapType][ratio].deaths,
+                player[min].teamfights[snapType].sum.deaths / playerStamps_reduced.teamfights[snapType].sum.deaths,
               buybacks:
-                player[min].teamfights[snapType][ratio].buybacks /
-                playerStamps_reduced.teamfights[snapType][ratio].buybacks,
-              killed:
-                player[min].teamfights[snapType][ratio].killed / playerStamps_reduced.teamfights[snapType][ratio].killed
+                player[min].teamfights[snapType].sum.buybacks / playerStamps_reduced.teamfights[snapType].sum.buybacks,
+              killed: player[min].teamfights[snapType].sum.killed / playerStamps_reduced.teamfights[snapType].sum.killed
             };
           }
         }
@@ -652,6 +658,9 @@ export class LevelTwoMatchesRepo {
   }
 
   private convertToPlayerSlot(slot: number) {
+    if (slot < 5) {
+      return slot;
+    }
     const mapping = {
       5: 128,
       6: 129,
