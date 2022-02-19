@@ -2,12 +2,12 @@ import { Filter, FindOptions } from 'mongodb';
 import { Body, Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { AuthenticationGuard } from '../../guards/authentication.guard';
 import { AdminGuard } from '../../guards/admin.guard';
-import { ConstantsRepo } from '../data-stores/constants.store';
+import { ConstantsStore } from '../data-stores/constants.store';
 
 @Controller('dota-constants')
 @UseGuards(AuthenticationGuard)
 export class DotaConstantsController {
-  constructor(private constantsRepo: ConstantsRepo) {}
+  constructor(private constants: ConstantsStore) {}
 
   /**
    * query heroes basic data, id, name, picture cdn-links, attributes, health
@@ -24,7 +24,7 @@ export class DotaConstantsController {
     if (simple) {
       findOptions.projection = heroesSimpleFields;
     }
-    return this.constantsRepo.get('heroes', query, findOptions);
+    return this.constants.get('heroes', query, findOptions);
   }
 
   /**
@@ -41,7 +41,7 @@ export class DotaConstantsController {
     if (simple) {
       findOptions.projection = heroesSimpleFields;
     }
-    return this.constantsRepo.get('heroes', query, findOptions);
+    return this.constants.get('heroes', query, findOptions);
   }
 }
 
