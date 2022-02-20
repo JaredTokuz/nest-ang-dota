@@ -12,7 +12,7 @@ import { LiveGame } from '../interfaces/live-matches';
 import { OpenDotaService } from '../services/open-dota.service';
 import { OpenDotaMatch } from '../interfaces/open-dota-match';
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common';
 import { concat, concatMap, delay, from, Observable, of, share, Subject, tap } from 'rxjs';
 import { Collection } from 'mongodb';
 import { LiveMatchStore } from './live-match.store';
@@ -33,19 +33,19 @@ export type ErrorMatchResponse = TypeProcessResponseError<ErrorResponse>;
 export type MatchResponses = SuccessMatchResponse | ErrorMatchResponse;
 
 @Injectable()
-export class MatchesStore {
+export class MatchesStore implements OnModuleInit {
   private subject = new Subject<MatchResponses>();
   processed$: Observable<MatchResponses> = this.subject.asObservable().pipe(share());
 
   constructor(
-    @Inject(MATCHES)
-    private readonly matchCollection: Collection<OpenDotaMatch>,
-    @Inject(LIVE_MATCHES)
-    private liveMatchCollection: Collection<LiveGameDocument>,
-    private readonly opendota: OpenDotaService,
-    private readonly liveRepo: LiveMatchStore
-  ) {
-    this.liveRepo.processed$
+    @Inject(MATCHES) private readonly matchCollection: Collection<OpenDotaMatch>,
+    @Inject(LIVE_MATCHES) private liveMatchCollection: Collection<LiveGameDocument>,
+    @Inject(OpenDotaService) private readonly opendota: OpenDotaService,
+    @Inject(LiveMatchStore) private readonly live: LiveMatchStore
+  ) {}
+
+  onModuleInit() {
+    this.live.processed$
       .pipe(
         concatMap(val => {
           if (val.status == 'success') {

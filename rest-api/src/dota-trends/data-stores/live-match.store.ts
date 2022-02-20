@@ -47,9 +47,8 @@ export class LiveMatchStore {
   processed$ = this.subject.asObservable().pipe(share());
 
   constructor(
-    @Inject(LIVE_MATCHES)
-    private readonly liveMatchCollection: Collection<LiveGameDocument>,
-    private readonly opendota: OpenDotaService
+    @Inject(LIVE_MATCHES) private readonly liveMatchCollection: Collection<LiveGameDocument>,
+    @Inject(OpenDotaService) private readonly opendota: OpenDotaService
   ) {}
 
   /**

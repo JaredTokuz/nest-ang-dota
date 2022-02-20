@@ -8,9 +8,8 @@ import { DATABASE_CONNECTION } from '../database/database.provider';
 @Injectable()
 export class ConstantsStore {
   constructor(
-    @Inject(DATABASE_CONNECTION)
-    private readonly db: Db,
-    private readonly opendota: OpenDotaService
+    @Inject(DATABASE_CONNECTION) private readonly db: Db,
+    @Inject(OpenDotaService) private readonly opendota: OpenDotaService
   ) {}
 
   /**

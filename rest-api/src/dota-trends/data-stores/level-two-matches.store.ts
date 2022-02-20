@@ -22,7 +22,7 @@ import {
 } from '../interfaces/level-two-match';
 import { MatchesStore } from './matches.store';
 import { Objective, Objectives, OpenDotaMatch, Player } from '../interfaces/open-dota-match';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common';
 import { BehaviorSubject, concatAll, concatMap, delay, from, map, Observable, of, share, Subject, tap } from 'rxjs';
 import { Collection } from 'mongodb';
 import { FirstbloodObj, LevelTwoHero, Role } from '../interfaces/level-two-match';
@@ -49,16 +49,17 @@ interface PreCalData extends OpenDotaMatch {
 }
 
 @Injectable()
-export class LevelTwoMatchesStore {
+export class LevelTwoMatchesStore implements OnModuleInit {
   private subject = new Subject<LevelTwoResponses>();
   public processed$ = this.subject.asObservable().pipe(share());
 
   /** add another collection to a level two match coll  */
   constructor(
-    @Inject(LVL_TWO_HEROES)
-    private readonly levelTwoMatchCollection: Collection<LevelTwoHero>,
-    private readonly matchesStore: MatchesStore
-  ) {
+    @Inject(LVL_TWO_HEROES) private readonly levelTwoMatchCollection: Collection<LevelTwoHero>,
+    @Inject(MatchesStore) private readonly matchesStore: MatchesStore
+  ) {}
+
+  onModuleInit() {
     this.matchesStore.processed$
       .pipe(
         concatMap(val => {
