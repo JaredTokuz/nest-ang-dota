@@ -4,7 +4,7 @@ import { Controller, Get } from '@nestjs/common';
 export class PingController {
   constructor() {}
 
-  @Get('')
+  @Get()
   ping() {
     return 'Hello World';
   }

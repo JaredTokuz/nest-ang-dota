@@ -14,7 +14,7 @@ import { LiveMatchStore } from '../live-match.store';
 import { MatchesStore } from '../matches.store';
 
 /**
- * testing=true npx jest ./matches.store.spec.ts --forceExit --verbose
+ * NODE_ENV=test npx jest ./matches.store.spec.ts --forceExit --verbose
  */
 
 describe('MatchesStore', () => {

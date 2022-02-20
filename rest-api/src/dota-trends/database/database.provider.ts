@@ -3,37 +3,48 @@ import { MongoClient, Db } from 'mongodb';
 import { OpenDotaMatch } from '../interfaces/open-dota-match';
 import { DOTA_MONGO_URI } from '../../environment.dev';
 import { LevelTwoHero } from '../interfaces/level-two-match';
+import { FactoryProvider } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ENV_VARIABLES } from '../../app.module';
 
 export const DATABASE_CONNECTION = 'DATABASE_CONNECTION';
 export const LIVE_MATCHES = 'liveMatches';
 export const MATCHES = 'matches';
 export const LVL_TWO_HEROES = 'level-two-heroes';
 
-const db_uri = process.env.testing ? 'mongodb://127.0.0.1:27017/dotaTestDB' : DOTA_MONGO_URI;
-
-export const databaseProviders = [
+export const databaseProviders: FactoryProvider[] = [
   {
     provide: DATABASE_CONNECTION,
-    useFactory: async (): Promise<Db> => {
-      return (await new MongoClient(db_uri).connect()).db();
-    }
+    useFactory: async (config: ConfigService<ENV_VARIABLES>): Promise<Db> => {
+      console.log('dota', config.get('DOTA_MONGO_URI'));
+      console.log('nod evn', config.get('NODE_ENV'));
+      return (await new MongoClient(config.get('DOTA_MONGO_URI')).connect()).db();
+    },
+    inject: [ConfigService]
   },
   {
     provide: MATCHES,
-    useFactory: async () => {
-      return (await new MongoClient(db_uri).connect()).db().collection<OpenDotaMatch>(MATCHES);
-    }
+    useFactory: async (config: ConfigService<ENV_VARIABLES>) => {
+      return (await new MongoClient(config.get('DOTA_MONGO_URI')).connect()).db().collection<OpenDotaMatch>(MATCHES);
+    },
+    inject: [ConfigService]
   },
   {
     provide: LIVE_MATCHES,
-    useFactory: async () => {
-      return (await new MongoClient(db_uri).connect()).db().collection<LiveGameDocument>(LIVE_MATCHES);
-    }
+    useFactory: async (config: ConfigService<ENV_VARIABLES>) => {
+      return (await new MongoClient(config.get('DOTA_MONGO_URI')).connect())
+        .db()
+        .collection<LiveGameDocument>(LIVE_MATCHES);
+    },
+    inject: [ConfigService]
   },
   {
     provide: LVL_TWO_HEROES,
-    useFactory: async () => {
-      return (await new MongoClient(db_uri).connect()).db().collection<LevelTwoHero>(LVL_TWO_HEROES);
-    }
+    useFactory: async (config: ConfigService<ENV_VARIABLES>) => {
+      return (await new MongoClient(config.get('DOTA_MONGO_URI')).connect())
+        .db()
+        .collection<LevelTwoHero>(LVL_TWO_HEROES);
+    },
+    inject: [ConfigService]
   }
 ];

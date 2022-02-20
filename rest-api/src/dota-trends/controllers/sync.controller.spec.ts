@@ -15,7 +15,7 @@ import { OpenDotaService } from '../services/open-dota.service';
 import { SyncController } from './sync.controller';
 
 /**
- * testing=true npx jest ./sync.controller.spec.ts --forceExit --verbose
+ * NODE_ENV=test npx jest ./sync.controller.spec.ts --forceExit --verbose
  */
 
 describe('SyncController', () => {

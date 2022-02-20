@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Collection, Db } from 'mongodb';
 import { concatAll, concatMap, filter, forkJoin, from, map, of, take, tap, toArray } from 'rxjs';
+import { AppTestModule } from '../../../app.test.module';
 import { makeContext } from '../../../functions/context';
 import { DbLoggerMainFields } from '../../../interfaces/db-logger';
 import { range } from '../../../misc';
@@ -14,7 +15,7 @@ import { OpenDotaService } from '../../services/open-dota.service';
 import { LiveMatchStore } from '../live-match.store';
 
 /**
- testing=true npx jest live-match.store.spec.ts --forceExit
+ NODE_ENV=test npx jest live-match.store.spec.ts --forceExit --verbose --no-cache
  */
 
 describe('LiveMatchStore', () => {
@@ -24,7 +25,8 @@ describe('LiveMatchStore', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule, HttpModule],
+      imports: [HttpModule, AppTestModule, DatabaseModule],
+      // imports: [DatabaseModule, HttpModule],
       providers: [LiveMatchStore, OpenDotaService]
     })
       .setLogger(new Logger())

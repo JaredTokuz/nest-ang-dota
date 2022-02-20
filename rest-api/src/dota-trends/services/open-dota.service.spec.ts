@@ -7,7 +7,7 @@ import { configDotaConstants } from '../interfaces/dota-constants-sync';
 import { OpenDotaService } from './open-dota.service';
 
 /**
- * testing=true npx jest open-dota.service.spec.ts --forceExit
+ * NODE_ENV=test npx jest open-dota.service.spec.ts --forceExit
  */
 
 describe('OpenDotaService', () => {
