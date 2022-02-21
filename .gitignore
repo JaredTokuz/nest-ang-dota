@@ -48,4 +48,11 @@ testem.log
 Thumbs.db
 
 # production env
-/env/.env
+/env/*.env
+**/env/*.env
+!/env/.development.env
+!**/env/.development.env
+!/env/test.env
+!**/env/test.env
+
+!**/env/.env.test

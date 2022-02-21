@@ -23,7 +23,11 @@ export interface ENV_VARIABLES {
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('development', 'production', 'test', 'provision').default('development')
       }),
-      envFilePath: path.join(__dirname, `../../env/${process.env.NODE_ENV || 'development'}.env`),
+      validationOptions: {
+        abortEarly: true
+      },
+      ignoreEnvFile: true /** env set thru docker run --env-file <file-path>  */,
+      // envFilePath: path.join(__dirname, `../../env/${process.env.NODE_ENV}.env`),
       cache: true
     })
   ],

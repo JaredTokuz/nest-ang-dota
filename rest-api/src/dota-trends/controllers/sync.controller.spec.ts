@@ -1,6 +1,7 @@
 import { HttpModule } from '@nestjs/axios';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Db } from 'mongodb';
+import { AppTestModule } from '../../app.test.module';
 import { daysToMs, unixTimestamp } from '../../misc';
 import { DOTA_DBLOGGER } from '../constants';
 import { ConstantsStore } from '../data-stores/constants.store';
