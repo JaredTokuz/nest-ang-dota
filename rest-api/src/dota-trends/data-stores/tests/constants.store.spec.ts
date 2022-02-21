@@ -2,6 +2,7 @@ import { HttpModule } from '@nestjs/axios';
 import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Db } from 'mongodb';
+import { AppTestModule } from '../../../app.test.module';
 import { DatabaseModule } from '../../database/database.module';
 import { DATABASE_CONNECTION } from '../../database/database.provider';
 import { configDotaConstants } from '../../interfaces/dota-constants-sync';
@@ -18,7 +19,7 @@ describe('ConstantsStore', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule, HttpModule],
+      imports: [AppTestModule, DatabaseModule, HttpModule],
       providers: [ConstantsStore, OpenDotaService]
     })
       .setLogger(new Logger())

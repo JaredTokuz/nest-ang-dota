@@ -16,9 +16,13 @@ export const databaseProviders: FactoryProvider[] = [
   {
     provide: DATABASE_CONNECTION,
     useFactory: async (config: ConfigService<ENV_VARIABLES>): Promise<Db> => {
-      console.log('dota', config.get('DOTA_MONGO_URI'));
-      console.log('nod evn', config.get('NODE_ENV'));
-      return (await new MongoClient(config.get('DOTA_MONGO_URI')).connect()).db();
+      try {
+        return (await new MongoClient(config.get('DOTA_MONGO_URI')).connect()).db();
+      } catch (err) {
+        console.error('err at DATABASE_CONNECTION', err);
+        console.error('dota', config.get('DOTA_MONGO_URI'));
+        console.error('nod evn', config.get('NODE_ENV'));
+      }
     },
     inject: [ConfigService]
   },

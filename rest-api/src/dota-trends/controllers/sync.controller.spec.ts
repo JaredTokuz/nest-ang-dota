@@ -24,7 +24,7 @@ describe('SyncController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule, HttpModule],
+      imports: [AppTestModule, DatabaseModule, HttpModule],
       controllers: [SyncController],
       providers: [LevelTwoMatchesStore, MatchesStore, OpenDotaService, LiveMatchStore, ConstantsStore]
     }).compile();

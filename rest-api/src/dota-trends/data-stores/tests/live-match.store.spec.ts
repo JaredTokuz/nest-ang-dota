@@ -25,9 +25,8 @@ describe('LiveMatchStore', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [HttpModule, AppTestModule, DatabaseModule],
-      // imports: [DatabaseModule, HttpModule],
-      providers: [LiveMatchStore, OpenDotaService]
+      imports: [AppTestModule, DatabaseModule, HttpModule],
+      providers: [OpenDotaService, LiveMatchStore]
     })
       .setLogger(new Logger())
       .compile();

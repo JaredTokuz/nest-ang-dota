@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { GetUserMiddleware } from './middleware/get-user.middleware';
 import { PingController } from './ping.controller';
 import * as Joi from 'joi';
+import * as path from 'path';
 
 export interface ENV_VARIABLES {
   NODE_ENV: 'production' | 'development' | 'test';
@@ -20,9 +21,9 @@ export interface ENV_VARIABLES {
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
-        NODE_ENV: Joi.string().valid('development', 'production', 'test', 'provision').default('dev')
+        NODE_ENV: Joi.string().valid('development', 'production', 'test', 'provision').default('development')
       }),
-      envFilePath: `env/${process.env.NODE_ENV}.env`,
+      envFilePath: path.join(__dirname, `../../env/${process.env.NODE_ENV || 'development'}.env`),
       cache: true
     })
   ],

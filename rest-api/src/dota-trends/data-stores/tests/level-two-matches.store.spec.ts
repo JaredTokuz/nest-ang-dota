@@ -2,6 +2,7 @@ import { HttpModule } from '@nestjs/axios';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Collection, Db, WithId } from 'mongodb';
 import { concatMap, forkJoin, from, take, tap } from 'rxjs';
+import { AppTestModule } from '../../../app.test.module';
 import { makeContext } from '../../../functions/context';
 import { DbLoggerMainFields } from '../../../interfaces/db-logger';
 import { DOTA_DBLOGGER } from '../../constants';
@@ -27,7 +28,7 @@ describe('LevelTwoMatchesStore', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule, HttpModule],
+      imports: [AppTestModule, DatabaseModule, HttpModule],
       providers: [LevelTwoMatchesStore, MatchesStore, OpenDotaService, LiveMatchStore]
     }).compile();
 

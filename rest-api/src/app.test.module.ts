@@ -9,6 +9,7 @@ import * as Joi from 'joi';
 import * as path from 'path';
 import { DatabaseModule } from './dota-trends/database/database.module';
 import { HttpModule, HttpService } from '@nestjs/axios';
+import { OpenDotaService } from './dota-trends/services/open-dota.service';
 
 export interface ENV_VARIABLES {
   NODE_ENV: 'production' | 'development' | 'test';
@@ -29,7 +30,8 @@ export interface ENV_VARIABLES {
       cache: true
     })
   ]
-  // exports: [DatabaseModule, HttpModule]
+  // providers: [OpenDotaService],
+  // exports: [DatabaseModule, HttpModule, OpenDotaService]
 })
 export class AppTestModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

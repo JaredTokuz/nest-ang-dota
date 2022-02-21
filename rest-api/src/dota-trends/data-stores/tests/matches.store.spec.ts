@@ -1,13 +1,16 @@
 import { HttpModule } from '@nestjs/axios';
 import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { date } from 'joi';
 import { Collection, Db } from 'mongodb';
 import { concatMap, forkJoin, from, map, take, tap } from 'rxjs';
+import { AppTestModule } from '../../../app.test.module';
 import { makeContext } from '../../../functions/context';
 import { DbLoggerMainFields } from '../../../interfaces/db-logger';
 import { DOTA_DBLOGGER } from '../../constants';
 import { DatabaseModule } from '../../database/database.module';
-import { DATABASE_CONNECTION, MATCHES } from '../../database/database.provider';
+import { DATABASE_CONNECTION, LIVE_MATCHES, MATCHES } from '../../database/database.provider';
+import { LiveGameDocument } from '../../interfaces/live-matches';
 import { OpenDotaMatch } from '../../interfaces/open-dota-match';
 import { OpenDotaService } from '../../services/open-dota.service';
 import { LiveMatchStore } from '../live-match.store';
@@ -21,10 +24,11 @@ describe('MatchesStore', () => {
   let service: MatchesStore;
   let logger: Collection<DbLoggerMainFields>;
   let col: Collection<OpenDotaMatch>;
+  let live: Collection<LiveGameDocument>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule, HttpModule],
+      imports: [AppTestModule, DatabaseModule, HttpModule],
       providers: [MatchesStore, OpenDotaService, LiveMatchStore]
     })
       .setLogger(new Logger())
@@ -33,6 +37,14 @@ describe('MatchesStore', () => {
     logger = module.get<Db>(DATABASE_CONNECTION).collection(DOTA_DBLOGGER);
     col = module.get(MATCHES);
     service = module.get<MatchesStore>(MatchesStore);
+
+    live = module.get<Db>(DATABASE_CONNECTION).collection<LiveGameDocument>(LIVE_MATCHES);
+
+    await live.insertOne({ match_id: '6349819003', game_finished: null, activate_time: 123, syncDate: new Date() });
+  });
+
+  afterEach(async () => {
+    await live.deleteOne({ match_id: '6349819003' });
   });
 
   it('should parse match succesfully then upsert to db', done => {
@@ -79,7 +91,7 @@ describe('MatchesStore', () => {
       });
   });
 
-  it('should live match db and throw fake match_id ', done => {
+  it('should live match db and succeed ', done => {
     forkJoin([
       service.processed$.pipe(
         tap(data => {

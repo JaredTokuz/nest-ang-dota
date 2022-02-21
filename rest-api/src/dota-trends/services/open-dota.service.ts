@@ -17,7 +17,7 @@ export class OpenDotaService {
     retries: this.retries,
     logger: this.ctx
   };
-  constructor(private httpService: HttpService) {}
+  constructor(@Inject(HttpService) private httpService: HttpService) {}
 
   liveMatches() {
     return standardRetryStrategy(this.get<OpenDotaLiveResponse>('/live'), this.strat);

@@ -8,9 +8,10 @@
   "scripts": {
     "start": "nest start --watch",
     "build": "tsc -p tsconfig.build.json",
-    "docker:start": "docker run -dp 9000:9000 --network host nest",
+    "docker:start": "docker run -p 9000:9000 --network host nest",
     "docker:build": "docker build -t nest .",
-    "docker:in": "docker run -p 9000:9000 --network host nest",
+    "docker:detached": "docker run -dp 9000:9000 --network host nest",
+    "docker:dev": "docker run -p 9000:9000 --network host -w /app -v \"$(pwd):/app\" node:14-alpine3.14 sh -c \"npm i && npm start\"",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "clean": "rimraf dist",
     "run-populate-db": "node ./dist/rest-api/populate-db.js",
