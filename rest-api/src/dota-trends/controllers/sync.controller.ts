@@ -19,14 +19,13 @@ import { ConstantsStore } from '../data-stores/constants.store';
 import { DOTA_DBLOGGER } from '../constants';
 
 @Controller('sync')
-@UseGuards(AuthenticationGuard)
+// @UseGuards(AuthenticationGuard)
 export class SyncController {
   constructor(
     private readonly matchesStore: MatchesStore,
-    @Inject(DATABASE_CONNECTION)
-    private db: Db,
+    @Inject(DATABASE_CONNECTION) private db: Db,
     private liveStore: LiveMatchStore,
-    private constantsStore: ConstantsStore
+    @Inject(ConstantsStore) private constantsStore: ConstantsStore
   ) {}
 
   @Cron('0 0 */2 ? * *')
@@ -147,27 +146,27 @@ export class SyncController {
 
   /** TODO */
   @Post('constants')
-  @UseGuards(AdminGuard)
+  // @UseGuards(AdminGuard)
   async constantSync(@Query('constant') constant?: string) {
     return this.constantsStore.sync(constant);
   }
 
   @Post('live')
-  @UseGuards(AdminGuard)
+  // @UseGuards(AdminGuard)
   async liveMatchesSync() {
     return this.liveStore.sync({ ctx: this.makeCtx(), payload: {} }).subscribe();
   }
 
   /** this will resync all live matches that are not finished and conditional delay */
   @Post('live/retry')
-  @UseGuards(AdminGuard)
+  // @UseGuards(AdminGuard)
   async liveMatchesRetry() {
     return this.liveStore.emitUnfinished({ ctx: this.makeCtx(), payload: {} }).subscribe();
   }
 
   /** only sync if it is a live match */
   @Post('match/:id')
-  @UseGuards(AdminGuard)
+  // @UseGuards(AdminGuard)
   async matchesParseLiveMatchesOnly(@Param('id') id: string) {
     return this.matchesStore.liveMatchOnlyParse$(id, this.makeCtx()).subscribe();
   }

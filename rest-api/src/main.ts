@@ -9,9 +9,9 @@ import { ValidationException } from './filters/validation.exception';
 async function bootstrap() {
   const fs = require('fs');
 
-  fs.readdirSync(__dirname).forEach(file => {
-    console.log(file);
-  });
+  // fs.readdirSync(__dirname).forEach(file => {
+  //   console.log(file);
+  // });
 
   const app = await NestFactory.create(AppModule);
 

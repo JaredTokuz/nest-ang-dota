@@ -7,9 +7,9 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "nest start --watch",
-    "docker:start": "docker run -p 9000:9000 --env-file ./env/development.env --network host nest",
     "start:prod": "node dist/src/main.js",
     "build": "tsc -p tsconfig.build.json",
+    "docker:start": "docker run -p 9000:9000 --env-file ./env/development.env --network host nest",
     "docker:build": "docker build -t nest .",
     "docker:detached": "docker run -dp 9000:9000 --network host nest",
     "docker:dev": "docker run -p 9000:9000 --network host --env-file ./env/development.env -w /app -v \"$(pwd):/app\" node:14-alpine3.14 sh -c \"npm i && npm start\"",

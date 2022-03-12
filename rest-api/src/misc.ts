@@ -2,6 +2,12 @@ export const delay = (ms: number) => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
+export const payloadify = async <T>(promise: Promise<T>) => {
+  return promise.then(data => {
+    return { payload: data };
+  });
+};
+
 export const unixTimestamp = (date: Date) => {
   return Math.floor(date.getTime() / 1000);
 };

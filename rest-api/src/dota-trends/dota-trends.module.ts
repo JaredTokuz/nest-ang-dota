@@ -8,10 +8,11 @@ import { HttpModule } from '@nestjs/axios';
 import { LiveMatchStore } from './data-stores/live-match.store';
 import { LevelTwoMatchesStore } from './data-stores/level-two-matches.store';
 import { OpenDotaService } from './services/open-dota.service';
+import { ConstantsStore } from './data-stores/constants.store';
 
 @Module({
   imports: [DatabaseModule, HttpModule],
   controllers: [DotaConstantsController, SyncController],
-  providers: [LiveMatchStore, MatchesStore, LevelTwoMatchesStore, OpenDotaService]
+  providers: [LiveMatchStore, MatchesStore, LevelTwoMatchesStore, ConstantsStore, OpenDotaService]
 })
 export class DotaTrendsModule {}

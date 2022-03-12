@@ -1,13 +1,14 @@
 import { Filter, FindOptions } from 'mongodb';
-import { Body, Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Query, UseGuards } from '@nestjs/common';
 import { AuthenticationGuard } from '../../guards/authentication.guard';
 import { AdminGuard } from '../../guards/admin.guard';
 import { ConstantsStore } from '../data-stores/constants.store';
+import { payloadify } from '../../misc';
 
 @Controller('dota-constants')
-@UseGuards(AuthenticationGuard)
+// @UseGuards(AuthenticationGuard)
 export class DotaConstantsController {
-  constructor(private constants: ConstantsStore) {}
+  constructor(@Inject(ConstantsStore) private constants: ConstantsStore) {}
 
   /**
    * query heroes basic data, id, name, picture cdn-links, attributes, health
@@ -16,15 +17,14 @@ export class DotaConstantsController {
    * @returns
    */
   @Get('heroes')
-  @UseGuards(AdminGuard)
+  // @UseGuards(AdminGuard)
   getHeroes(@Query('simple') simple?: boolean) {
     const query: Filter<any> = {};
     const findOptions: FindOptions = {};
-    console.log('simple', simple);
     if (simple) {
       findOptions.projection = heroesSimpleFields;
     }
-    return this.constants.get('heroes', query, findOptions);
+    return payloadify(this.constants.get('heroes', query, findOptions));
   }
 
   /**
@@ -34,14 +34,14 @@ export class DotaConstantsController {
    * @returns
    */
   @Get('hero/:id')
-  @UseGuards(AdminGuard)
+  // @UseGuards(AdminGuard)
   getHero(@Query('simple') simple?: boolean, @Param('id') id?: string) {
     const query: Filter<any> = { id };
     const findOptions: FindOptions = {};
     if (simple) {
       findOptions.projection = heroesSimpleFields;
     }
-    return this.constants.get('heroes', query, findOptions);
+    return payloadify(this.constants.get('heroes', query, findOptions));
   }
 }
 
@@ -50,6 +50,6 @@ const heroesSimpleFields = {
   id: 1,
   name: 1,
   localized_name: 1,
-  img: 1,
+  // img: 1,
   icon: 1
 };

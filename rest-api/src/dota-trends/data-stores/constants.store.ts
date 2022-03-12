@@ -7,7 +7,10 @@ import { DATABASE_CONNECTION } from '../database/database.provider';
 
 @Injectable()
 export class ConstantsStore {
-  constructor(@Inject(DATABASE_CONNECTION) private readonly db: Db, private readonly opendota: OpenDotaService) {}
+  constructor(
+    @Inject(DATABASE_CONNECTION) private readonly db: Db,
+    @Inject(OpenDotaService) private readonly opendota: OpenDotaService
+  ) {}
 
   /**
    * gets the constants data, parses the important bits

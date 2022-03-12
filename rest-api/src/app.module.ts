@@ -8,6 +8,7 @@ import { GetUserMiddleware } from './middleware/get-user.middleware';
 import { PingController } from './ping.controller';
 import * as Joi from 'joi';
 import * as path from 'path';
+import { HttpModule } from '@nestjs/axios';
 
 export interface ENV_VARIABLES {
   NODE_ENV: 'production' | 'development' | 'test';
@@ -17,6 +18,7 @@ export interface ENV_VARIABLES {
 @Module({
   imports: [
     DotaTrendsModule,
+    HttpModule,
     AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
