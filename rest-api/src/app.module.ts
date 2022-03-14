@@ -9,17 +9,21 @@ import { PingController } from './ping.controller';
 import * as Joi from 'joi';
 import * as path from 'path';
 import { HttpModule } from '@nestjs/axios';
+import { ScheduleModule } from '@nestjs/schedule';
 
 export interface ENV_VARIABLES {
   NODE_ENV: 'production' | 'development' | 'test';
   DOTA_MONGO_URI: string;
 }
 
+console.log('checking ...' + path.join(__dirname, `../../env/${process.env.NODE_ENV}.env`));
+
 @Module({
   imports: [
     DotaTrendsModule,
     HttpModule,
     AuthModule,
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
@@ -28,12 +32,17 @@ export interface ENV_VARIABLES {
       validationOptions: {
         abortEarly: true
       },
-      ignoreEnvFile: true /** env set thru docker run --env-file <file-path>  */,
-      // envFilePath: path.join(__dirname, `../../env/${process.env.NODE_ENV}.env`),
+      ignoreEnvFile:
+        process.env.IGNORE_ENV_FILE === 'false' ? false : true /** env set thru docker run --env-file <file-path>  */,
+      envFilePath: path.join(
+        __dirname,
+        `../../env/${process.env.NODE_ENV}.env`
+      ) /** need to cast NODE_ENV=development outside for this */,
       cache: true
     })
   ],
-  controllers: [PingController]
+  controllers: [PingController],
+  providers: []
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

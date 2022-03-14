@@ -9,10 +9,11 @@ import { LiveMatchStore } from './data-stores/live-match.store';
 import { LevelTwoMatchesStore } from './data-stores/level-two-matches.store';
 import { OpenDotaService } from './services/open-dota.service';
 import { ConstantsStore } from './data-stores/constants.store';
+import { TaskSchedulerService } from './services/task-scheduler/task-scheduler.service';
 
 @Module({
   imports: [DatabaseModule, HttpModule],
   controllers: [DotaConstantsController, SyncController],
-  providers: [LiveMatchStore, MatchesStore, LevelTwoMatchesStore, ConstantsStore, OpenDotaService]
+  providers: [OpenDotaService, TaskSchedulerService, LiveMatchStore, MatchesStore, LevelTwoMatchesStore, ConstantsStore]
 })
 export class DotaTrendsModule {}
