@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { Heroes, sortHeroesById } from '../model/heroes';
+import { Hero, sortHeroesById } from '../model/heroes';
 import { catchError, map, shareReplay, tap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { LoadingService } from '../loading/loading.service';
@@ -11,9 +11,9 @@ import { share } from 'rxjs';
     providedIn: 'root',
 })
 export class HeroesStore {
-    private subject = new BehaviorSubject<Heroes[]>([]);
+    private subject = new BehaviorSubject<Hero[]>([]);
 
-    public heroes$: Observable<Heroes[]> = this.subject
+    public heroes$: Observable<Hero[]> = this.subject
         .asObservable()
         .pipe(share());
 
@@ -27,7 +27,7 @@ export class HeroesStore {
 
     private loadAllHeroess() {
         const loadHeroes$ = this.http
-            .get<Heroes[]>('/api/dota-constants/heroes?simple=true')
+            .get<Hero[]>('/api/dota-constants/heroes?simple=true')
             .pipe(
                 map((response) => response['payload']),
                 catchError((err) => {

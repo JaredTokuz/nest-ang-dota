@@ -1,3 +1,22 @@
+## TODO
+
+1. Fix cron controller =>
+   task scheduler from the other project service & controller
+   move the cron to that 1 service
+   (DONE)
+
+2. Frontend More =>
+   Routes => Create 3 routes, about, cron, home (the analytics cards and everything)
+   task scheduler frontend : readonly table of all the jobs, 2 each
+   search-engine component & search-engine service/store
+   (done) (no routing? just single page multi tabs) no, fixed routing supported good
+   tab1 summary report (1 game at a time random query)
+   tab2 aggregate runs the aggregate level 3 design
+
+3. Run Docker container running both processes & port only the frontend =>
+   one docker container that runs both apps and only exposes the frontend,
+   then deploy to heroku and test
+
 # BoilerplateNestAng
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.1.2.
@@ -25,4 +44,5 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
 # dota-nest-ang

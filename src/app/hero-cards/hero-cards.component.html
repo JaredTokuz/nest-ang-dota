@@ -1,15 +1,64 @@
-<div class="card-container">
-    <a class="card" *ngFor="let hero of heroes$ | async">
-        <img [src]="cdnUrl(hero.icon)" />
-        <span>{{ hero.localized_name }}</span>
-        <svg
-            class="material-icons"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-        >
-            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-        </svg>
-    </a>
-</div>
+<mat-drawer-container class="example-sidenav-container" autosize>
+    <div class="content" role="main">
+        <div class="card-container">
+            <a
+                class="card"
+                *ngFor="let hero of heroes$ | async"
+                (click)="selectHero(hero)"
+            >
+                <img [src]="cdnUrl(hero.icon)" />
+                <span>{{ hero.localized_name }}</span>
+                <svg
+                    class="material-icons"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                >
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+                </svg>
+            </a>
+        </div>
+        <ng-content></ng-content>
+    </div>
+
+    <!-- maybe move this drawer into a new one inside the router -->
+    <mat-drawer
+        #summaryDrawer
+        color="primary"
+        class="example-sidenav sidenav-widthcap mat-elevation-z2"
+        mode="side"
+        position="end"
+    >
+        <mat-nav-list>
+            <div *ngIf="selectedHero$ | async as selectedHero" v>
+                <a
+                    *ngFor="let c of selectedHero?.constants | keyvalue"
+                    mat-list-item
+                >
+                    <mat-icon>person_add</mat-icon>
+                    <span>{{ c.key }}: </span>
+                    <div class="spacer"></div>
+                    <span class="sidenav-item">{{ c.value }}</span>
+                </a>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <a mat-list-item>
+                <mat-icon>person_add</mat-icon>
+                <span>Filters</span>
+            </a>
+
+            <a mat-list-item>
+                <mat-icon>account_circle</mat-icon>
+                <span>Summary</span>
+            </a>
+
+            <a mat-list-item>
+                <mat-icon>exit_to_app</mat-icon>
+                <span>Suggestions</span>
+            </a>
+        </mat-nav-list>
+    </mat-drawer>
+</mat-drawer-container>
