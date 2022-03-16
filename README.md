@@ -5,6 +5,8 @@
    move the cron to that 1 service
    (DONE)
 
+!) Fucking doozie man, Bug: fix the footer for schedule html
+
 2. Frontend More =>
    Routes => Create 3 routes, about, cron, home (the analytics cards and everything)
    task scheduler frontend : readonly table of all the jobs, 2 each

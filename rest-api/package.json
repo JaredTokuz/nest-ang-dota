@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "start": "IGNORE_ENV_FILE=false NODE_ENV=development nest start --watch",
+    "start": "npm run update:shared && IGNORE_ENV_FILE=false NODE_ENV=development nest start --watch",
     "start:prod": "node dist/src/main.js",
     "build": "tsc -p tsconfig.build.json",
     "docker:start": "docker run -p 9000:9000 --env-file ./env/development.env --network host nest",
@@ -22,7 +22,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "update:shared": "cp -r ../shared ./src/shared"
   },
   "dependencies": {
     "@nestjs/axios": "0.0.3",

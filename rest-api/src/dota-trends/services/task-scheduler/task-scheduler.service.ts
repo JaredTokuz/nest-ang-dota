@@ -14,6 +14,7 @@ import { LevelTwoHero } from '../../interfaces/level-two-match';
 import { LiveGameDocument } from '../../interfaces/live-matches';
 import { OpenDotaMatch } from '../../interfaces/open-dota-match';
 import { CronJob } from 'cron';
+import { CronSchedules } from '../../../interfaces/shared';
 
 const timeZone = 'America/Chicago';
 
@@ -27,13 +28,14 @@ export class TaskSchedulerService {
     private liveStore: LiveMatchStore
   ) {}
 
-  @Cron('*/5 * * * * *', {
-    name: 'random',
-    timeZone
-  })
-  testCron() {
-    this.getCronJobs();
-  }
+  // @Cron('*/5 * * * * *', {
+  //   name: 'test',
+  //   timeZone
+  // })
+  // testCron() {
+  //   this.logger.log('yo');
+  //   // this.getCronJobs();
+  // }
 
   @Cron('0 0 */2 * * *', {
     name: 'Live Match Sync',
@@ -157,7 +159,7 @@ export class TaskSchedulerService {
     }
   }
 
-  getCronJobs() {
+  getCronJobs(): CronSchedules {
     const jobs = {};
     this.schedulerRegistry.getCronJobs().forEach((value: CronJob, key, map) => {
       jobs[key] = {

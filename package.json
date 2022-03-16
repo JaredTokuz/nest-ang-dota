@@ -3,17 +3,18 @@
     "version": "0.0.0",
     "scripts": {
         "ng": "ng",
-        "start:dev": "ng serve --proxy-config ./proxy.json",
+        "start": "npm run update:shared && ng serve --proxy-config ./proxy.json",
         "build": "ng build",
         "dev": "docker run -dp 9000:9000 -w /app -v \"$(pwd):/app\" node:14-alpine sh -c \"npm \" ",
         "docker:start": "docker run -dp 9000:9000 nest #not really finished kinda",
         "docker:build": "docker build -t nest .",
         "watch": "ng build --watch --configuration development",
         "test": "ng test",
-        "tailwind": "npx tailwindcss -i ./tailwind.css -o ./src/styles.css",
-        "tailwind:dev": "npx tailwindcss -i ./tailwind.css -o ./src/styles.css --watch",
-        "tailwind:build:prod": "npx tailwindcss -i ./tailwind.css -o ./src/styles.css --minify",
-        "rest": "npm --prefix rest-api/ run server"
+        "tailwind": "npx tailwindcss -i ./tailwind.import.css -o ./src/tailwind.css",
+        "tailwind:dev": "npx tailwindcss -i ./tailwind.import.css -o ./src/tailwind.css --watch",
+        "tailwind:build:prod": "npx tailwindcss -i ./tailwind.import.css -o ./src/tailwind.css --minify",
+        "rest": "npm --prefix rest-api/ run server",
+        "update:shared": "cp -r ./shared ./src/app"
     },
     "private": true,
     "dependencies": {

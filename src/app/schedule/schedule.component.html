@@ -1,1 +1,19 @@
-<p>schedule works!</p>
+<div class="content" role="main">
+    <div class="card-container">
+        <ul *ngIf="crons" role="list" class="divide-y divide-gray-200">
+            <li *ngFor="let cron of crons | keyvalue" class="py-4 flex">
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900">
+                        {{ cron.key }}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        Last: {{ cron.value.last | date }}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        Next: {{ cron.value.next | date }}
+                    </p>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
